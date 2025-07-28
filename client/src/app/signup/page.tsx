@@ -72,22 +72,22 @@ export default function Signup() {
         <div className="w-6"></div> {/* 공간 확보용 */}
       </header>
 
-      <div className="p-6">
+      <div className="p-4">
         {/* Profile Image Section */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-6">
           <div className="relative">
-            <div className="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center">
+            <div className="w-20 h-20 bg-gray-300 rounded-full flex items-center justify-center">
               {profileImage ? (
                 <img 
                   src={URL.createObjectURL(profileImage)} 
                   alt="Profile" 
-                  className="w-24 h-24 rounded-full object-cover"
+                  className="w-20 h-20 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-24 h-24 bg-gray-300 rounded-full"></div>
+                <div className="w-20 h-20 bg-gray-300 rounded-full"></div>
               )}
             </div>
-            <label className="absolute bottom-0 right-0 w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center cursor-pointer">
+            <label className="absolute bottom-0 right-0 w-6 h-6 bg-gray-600 rounded-full flex items-center justify-center cursor-pointer">
               <input 
                 type="file" 
                 accept="image/*" 

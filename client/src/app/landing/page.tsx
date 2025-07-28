@@ -25,12 +25,12 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
       {/* 로고 */}
-      <div className="mb-12">
-        <h1 className="text-4xl font-bold text-gray-800 text-center">로고</h1>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-800 text-center">로고</h1>
       </div>
 
       {/* 로그인 버튼들 */}
-      <div className="w-full max-w-sm space-y-4">
+      <div className="w-full max-w-xs space-y-3">
         {/* 카카오 로그인 */}
         <button
           onClick={() => signIn('kakao', { callbackUrl: '/signup' })}

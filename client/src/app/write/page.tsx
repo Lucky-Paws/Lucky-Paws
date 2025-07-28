@@ -48,23 +48,23 @@ export default function WritePage() {
         showMenu={false}
       />
 
-      <div className="pt-16 p-4">
-        {/* Title Input */}
-        <input
-          type="text"
-          placeholder="제목을 입력하세요"
-          className="w-full text-xl font-medium outline-none py-3 border-b border-gray-200"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
+             <div className="pt-14 p-3">
+         {/* Title Input */}
+         <input
+           type="text"
+           placeholder="제목을 입력하세요"
+           className="w-full text-lg font-medium outline-none py-2 border-b border-gray-200"
+           value={title}
+           onChange={(e) => setTitle(e.target.value)}
+         />
 
-        {/* Content Input */}
-        <textarea
-          placeholder="내용을 입력하세요"
-          className="w-full outline-none py-4 min-h-[300px] resize-none"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-        />
+         {/* Content Input */}
+         <textarea
+           placeholder="내용을 입력하세요"
+           className="w-full outline-none py-3 min-h-[250px] resize-none text-sm"
+           value={content}
+           onChange={(e) => setContent(e.target.value)}
+         />
 
         {/* Category Selection */}
         <div className="border-t border-gray-200 pt-4 space-y-4">

@@ -41,16 +41,16 @@ export default function Home() {
       <Header />
 
       {/* Content with top padding for fixed header */}
-      <div className="pt-16 px-4 py-6 space-y-6">
+      <div className="pt-14 px-3 py-4 space-y-4">
         {/* Today's Everyone's Worries Section */}
         <div>
-          <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+          <h2 className="text-base font-bold mb-3 flex items-center gap-1">
             오늘 모두의 고민 <span className="text-yellow-500">⭐</span>
           </h2>
           
-          <div className="flex gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-2">
+          <div className="flex gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-1">
             {todaysPosts.slice(0, 4).map((post) => (
-              <div key={post.id} className="flex-shrink-0 w-72">
+              <div key={post.id} className="flex-shrink-0 w-60">
                 <PostCard post={post} />
               </div>
             ))}
@@ -58,24 +58,24 @@ export default function Home() {
         </div>
 
         {/* Counselors Section */}
-        <div className="bg-gray-200 rounded-lg p-4">
-          <h2 className="text-base font-bold text-gray-700 mb-4">00님의 주변에 이런 상담사분들이 계세요</h2>
+        <div className="bg-gray-200 rounded-lg p-3">
+          <h2 className="text-sm font-bold text-gray-700 mb-3">00님의 주변에 이런 상담사분들이 계세요</h2>
           
-          <div className="bg-white rounded-lg p-4 flex items-center justify-between">
-            <div className="w-20 h-16 bg-gray-100 rounded-lg"></div>
-            <div className="flex-1 ml-4">
-              <h3 className="font-medium text-red-500 mb-1">상담 예약하기</h3>
-              <p className="text-sm text-gray-500">상담 코칭 예약</p>
+          <div className="bg-white rounded-lg p-3 flex items-center justify-between">
+            <div className="w-16 h-12 bg-gray-100 rounded-lg"></div>
+            <div className="flex-1 ml-3">
+              <h3 className="font-medium text-red-500 mb-1 text-sm">상담 예약하기</h3>
+              <p className="text-xs text-gray-500">상담 코칭 예약</p>
             </div>
-            <div className="text-4xl">📋</div>
+            <div className="text-2xl">📋</div>
           </div>
         </div>
 
         {/* Popular Topic Section */}
         <div>
-          <h2 className="text-lg font-bold mb-4">인기 주제 #이직고민</h2>
+          <h2 className="text-base font-bold mb-3">인기 주제 #이직고민</h2>
           
-          <div className="space-y-4">
+          <div className="space-y-3">
             {careerPosts.slice(0, 2).map((post) => (
               <PostCard key={post.id} post={post} />
             ))}
@@ -83,10 +83,10 @@ export default function Home() {
         </div>
 
         {/* Government Support Section */}
-        <div className="bg-gray-200 rounded-lg p-4">
+        <div className="bg-gray-200 rounded-lg p-3">
           <div className="text-center">
-            <h2 className="text-base font-bold text-gray-700 mb-2">(국가심리지원사업정부)</h2>
-            <div className="bg-gray-400 text-white text-sm px-3 py-1 rounded-full inline-block">
+            <h2 className="text-sm font-bold text-gray-700 mb-2">(국가심리지원사업정부)</h2>
+            <div className="bg-gray-400 text-white text-xs px-2 py-1 rounded-full inline-block">
               2 / 10
             </div>
           </div>
@@ -94,9 +94,9 @@ export default function Home() {
 
         {/* Interest Topic Section */}
         <div>
-          <h2 className="text-lg font-bold mb-4">관심 주제 #학생지도</h2>
+          <h2 className="text-base font-bold mb-3">관심 주제 #학생지도</h2>
           
-          <div className="space-y-4">
+          <div className="space-y-3">
             {guidancePosts.slice(0, 2).map((post) => (
               <PostCard key={post.id} post={post} />
             ))}

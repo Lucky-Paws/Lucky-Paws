@@ -79,16 +79,16 @@ export default function Community() {
       </header>
 
       {/* Content with top padding for fixed header */}
-      <div className="pt-16">
+      <div className="pt-14">
         {/* Categories */}
-        <div className="bg-white py-6">
+        <div className="bg-white py-4">
           <div 
-            className="flex gap-6 px-4 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            className="flex gap-4 px-3 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
           >
             {allCategories.map((category, index) => (
               <div key={index} className="flex flex-col items-center flex-shrink-0">
-                <div className="w-14 h-14 bg-gray-300 rounded-full mb-2"></div>
-                <span className="text-sm text-gray-700 whitespace-nowrap">{category}</span>
+                <div className="w-12 h-12 bg-gray-300 rounded-full mb-1"></div>
+                <span className="text-xs text-gray-700 whitespace-nowrap">{category}</span>
               </div>
             ))}
           </div>
@@ -100,7 +100,7 @@ export default function Community() {
             {['미답변', '답변 완료'].map((tab) => (
               <button
                 key={tab}
-                className={`flex-1 py-4 text-center font-medium ${
+                className={`flex-1 py-3 text-center font-medium text-sm ${
                   activeTab === tab ? 'text-black border-b-2 border-black' : 'text-gray-500'
                 }`}
                 onClick={() => setActiveTab(tab as TabOption)}
@@ -112,7 +112,7 @@ export default function Community() {
         </div>
 
         {/* Filter */}
-        <div className="bg-white px-4 py-3 flex items-center justify-between border-b border-gray-100">
+        <div className="bg-white px-3 py-2 flex items-center justify-between border-b border-gray-100">
           <FilterDropdown
             label="정렬"
             value={selectedSort}

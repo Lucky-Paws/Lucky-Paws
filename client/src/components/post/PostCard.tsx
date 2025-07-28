@@ -17,38 +17,38 @@ export default function PostCard({ post, showMentorComment = false, mentorCommen
   };
 
   return (
-    <div className="bg-white rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={handleClick}>
-      <div className="flex gap-2 mb-2">
-        <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+    <div className="bg-white rounded-lg p-3 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={handleClick}>
+      <div className="flex gap-1 mb-2">
+        <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded">
           {post.author.teacherType} 선생님
         </span>
-        <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">
+        <span className="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">
           {post.author.yearsOfExperience}년차
         </span>
         {post.isHot && (
-          <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded flex items-center gap-1">
+          <span className="bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded flex items-center gap-1">
             HOT <span>🔥</span>
           </span>
         )}
       </div>
-      <h3 className="font-medium mb-2">{post.title}</h3>
-      <p className="text-sm text-gray-600 leading-tight mb-3 line-clamp-3">
+      <h3 className="font-medium mb-2 text-sm">{post.title}</h3>
+      <p className="text-xs text-gray-600 leading-tight mb-2 line-clamp-2">
         {post.content}
       </p>
       
       {showMentorComment && mentorComment && (
-        <div className="bg-gray-50 rounded-lg p-3 mb-3">
+        <div className="bg-gray-50 rounded-lg p-2 mb-2">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-gray-300 rounded-full"></div>
-            <span className="text-sm font-medium text-gray-700">멘토:</span>
-            <span className="text-sm text-gray-600 truncate">{mentorComment}</span>
+            <div className="w-4 h-4 bg-gray-300 rounded-full"></div>
+            <span className="text-xs font-medium text-gray-700">멘토:</span>
+            <span className="text-xs text-gray-600 truncate">{mentorComment}</span>
           </div>
         </div>
       )}
       
-      <div className="flex items-center justify-between text-sm text-gray-500">
-        <span>{post.author.name} · {formatTimeAgo(post.createdAt)} · 조회 {post.viewCount}</span>
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between text-xs text-gray-500">
+        <span className="truncate">{post.author.name} · {formatTimeAgo(post.createdAt)} · 조회 {post.viewCount}</span>
+        <div className="flex items-center gap-2 ml-2">
           <span className="flex items-center gap-1">
             <span className="text-red-500">❤️</span> {post.likeCount}
           </span>

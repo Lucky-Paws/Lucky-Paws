@@ -42,26 +42,26 @@ export default function PostDetail() {
       />
 
       {/* Content with top padding for fixed header */}
-      <div className="flex-1 pt-16 px-4 py-6">
+      <div className="flex-1 pt-14 px-3 py-4">
         {/* User Info */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
           <div>
-            <h2 className="font-medium text-lg">{post.author.name}</h2>
+            <h2 className="font-medium text-base">{post.author.name}</h2>
           </div>
         </div>
 
         {/* Post Title */}
-        <h1 className="text-xl font-bold mb-3">{post.title}</h1>
+        <h1 className="text-lg font-bold mb-2">{post.title}</h1>
 
         {/* Post Meta */}
-        <div className="text-sm text-gray-500 mb-6">
+        <div className="text-xs text-gray-500 mb-4">
           {formatDate(post.createdAt)} · 조회 {post.viewCount}
         </div>
 
         {/* Post Content */}
-        <div className="mb-6">
-          <p className="text-base leading-relaxed mb-4">
+        <div className="mb-4">
+          <p className="text-sm leading-relaxed mb-3">
             {post.content}
           </p>
         </div>
