@@ -149,7 +149,7 @@ export default function Community() {
       
       {/* Floating Write Button */}
       <button
-        className="fixed bottom-24 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors z-40 flex items-center justify-center"
+        className="fixed bottom-24 right-6 w-14 h-14 bg-gray-200 text-gray-700 rounded-full shadow-lg hover:bg-gray-300 transition-colors z-40 flex items-center justify-center"
         onClick={() => router.push('/write')}
       >
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
