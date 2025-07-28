@@ -21,7 +21,7 @@ const generateMockPosts = (): Post[] => {
   return Array.from({ length: 50 }, (_, i) => ({
     id: `post-${i + 1}`,
     title: `오늘 아이가 어떠구 ${i + 1}`,
-    content: '내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용...',
+    content: '내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용...',
     author: {
       id: `user-${i % 10}`,
       name: `${i % 2 === 0 ? 'OOO 멘티' : 'OOO 멘토'}`,
@@ -44,6 +44,8 @@ export function usePosts(options: UsePostsOptions = {}) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -51,8 +53,8 @@ export function usePosts(options: UsePostsOptions = {}) {
       setError(null);
       
       try {
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // 목 데이터 사용 (API 호출 비활성화)
+        console.log('목 데이터 사용 중');
         
         let allPosts = generateMockPosts();
         
@@ -104,6 +106,7 @@ export function usePosts(options: UsePostsOptions = {}) {
         }
         
         setPosts(allPosts);
+        setTotal(allPosts.length);
       } catch (err) {
         setError('게시글을 불러오는데 실패했습니다.');
       } finally {
@@ -112,7 +115,7 @@ export function usePosts(options: UsePostsOptions = {}) {
     };
 
     fetchPosts();
-  }, [options.category, options.teacherLevel, options.experienceYears, options.isAnswered, options.sortBy, options.searchQuery]);
+  }, [options.category, options.teacherLevel, options.experienceYears, options.isAnswered, options.sortBy, options.searchQuery, page]);
 
-  return { posts, loading, error };
+  return { posts, loading, error, total, page, setPage };
 }

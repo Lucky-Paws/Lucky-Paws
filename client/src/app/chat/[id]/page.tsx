@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useParams } from 'next/navigation';
+import Header, { HEADER_HEIGHT } from '@/components/common/Header';
 
 export default function ChatRoom() {
   const { data: session, status } = useSession();
@@ -61,21 +62,32 @@ export default function ChatRoom() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#EDEDED' }}>
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 bg-white px-3 py-2 flex items-center shadow-sm z-50">
-        <button onClick={() => router.back()} className="p-1 mr-3">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <div>
-          <h1 className="text-base font-medium">{chatData.name}</h1>
-          <p className="text-xs text-gray-500">{chatData.info}</p>
-        </div>
-      </header>
+      <Header 
+        showBackButton={true}
+        showLogo={false}
+        showSearch={false}
+        showNotification={false}
+        leftContent={
+          <>
+            <button 
+              onClick={() => router.back()} 
+              className="flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+              style={{ width: '40px', height: '40px' }}
+            >
+              <svg width={24} height={24} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <div>
+              <h1 className="text-base font-medium">{chatData.name}</h1>
+              <p className="text-xs text-gray-500">{chatData.info}</p>
+            </div>
+          </>
+        }
+      />
 
       {/* Date Header */}
-      <div className="pt-16 flex justify-center py-2">
+      <div style={{ paddingTop: `${HEADER_HEIGHT}px` }} className="flex justify-center py-2">
         <div className="bg-white px-3 py-1 rounded-full text-xs text-gray-600">
           2025.07.28
         </div>

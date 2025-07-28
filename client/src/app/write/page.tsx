@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Header, { HEADER_HEIGHT } from '@/components/common/Header';
 
 export default function WritePage() {
   const router = useRouter();
@@ -44,38 +45,32 @@ export default function WritePage() {
 
   return (
     <div className="bg-white min-h-screen">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 bg-white px-3 py-2 flex items-center justify-between shadow-sm z-50">
-        <div className="flex items-center gap-3">
-          <button onClick={() => router.back()} className="p-1">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h1 className="text-lg font-medium">글 작성</h1>
-        </div>
-        <div className="flex flex-col items-center">
-          <button 
-            className="text-gray-600"
-            style={{
-              display: 'flex',
-              width: '20px',
-              height: '20px',
-              justifyContent: 'center',
-              alignItems: 'center',
-              flexShrink: 0
-            }}
-            onClick={handleSubmit}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-            </svg>
-          </button>
-          <span className="text-gray-600 text-xs mt-1">게시하기</span>
-        </div>
-      </header>
+      <Header 
+        title="글 작성"
+        showBackButton={true}
+        showLogo={false}
+        showSearch={false}
+        showNotification={false}
+        rightContent={
+          <div className="flex flex-col items-center">
+            <button 
+              className="text-gray-600 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+              style={{
+                width: '40px',
+                height: '40px'
+              }}
+              onClick={handleSubmit}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
+            </button>
+            <span className="text-gray-600 text-xs mt-1">게시하기</span>
+          </div>
+        }
+      />
 
-      <div className="pt-14 p-4">
+      <div style={{ paddingTop: `${HEADER_HEIGHT}px` }} className="p-4">
         {/* Category Selection */}
         <div className="mb-4">
           <h2 className="text-base font-bold mb-3">카테고리 선택</h2>
