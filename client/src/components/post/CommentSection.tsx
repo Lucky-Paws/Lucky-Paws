@@ -21,6 +21,7 @@ export default function CommentSection({
   const [newComment, setNewComment] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState('');
+  const [likedComments, setLikedComments] = useState<Set<string>>(new Set());
 
   const handleSubmitComment = () => {
     if (newComment.trim()) {
@@ -37,6 +38,19 @@ export default function CommentSection({
     }
   };
 
+  const handleLikeComment = (commentId: string) => {
+    setLikedComments(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(commentId)) {
+        newSet.delete(commentId);
+      } else {
+        newSet.add(commentId);
+      }
+      return newSet;
+    });
+    onLikeComment(commentId);
+  };
+
   return (
     <>
       <div className="space-y-4 mb-36">
@@ -45,7 +59,8 @@ export default function CommentSection({
             key={comment.id}
             comment={comment}
             currentUser={currentUser}
-            onLike={onLikeComment}
+            onLike={handleLikeComment}
+            isLiked={likedComments.has(comment.id)}
             onReply={(id) => setReplyingTo(id)}
             onDelete={onDeleteComment}
             isReplying={replyingTo === comment.id}
@@ -88,6 +103,7 @@ interface CommentItemProps {
   comment: Comment;
   currentUser?: User;
   onLike: (commentId: string) => void;
+  isLiked: boolean;
   onReply: (commentId: string) => void;
   onDelete?: (commentId: string) => void;
   isReplying: boolean;
@@ -101,6 +117,7 @@ function CommentItem({
   comment,
   currentUser,
   onLike,
+  isLiked,
   onReply,
   onDelete,
   isReplying,
@@ -123,8 +140,8 @@ function CommentItem({
             </span>
             <div className="ml-auto flex items-center gap-2">
               <button onClick={() => onReply(comment.id)} className="p-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.955 8.955 0 01-2.7-.413l-4.823 1.524a.75.75 0 01-.947-.947l1.524-4.823A8.955 8.955 0 014 12C4 7.582 7.582 4 12 4s8 3.582 8 8z" />
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M11.8031 9.12076C12.0898 8.47221 12.249 7.7547 12.249 7C12.249 4.10051 9.89872 1.75 6.9995 1.75C4.10028 1.75 1.75 4.10051 1.75 7C1.75 9.8995 4.10028 12.25 6.9995 12.25C7.93293 12.25 8.80946 12.0064 9.56897 11.5792L12.25 12.2495L11.8031 9.12076Z" stroke="#565656" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </button>
               {(isAuthor || onDelete) && (
@@ -139,8 +156,17 @@ function CommentItem({
           <p className="text-sm text-gray-800 mb-2">{comment.content}</p>
           <div className="flex items-center gap-4 text-xs text-gray-500">
             <span>{formatDate(comment.createdAt)}</span>
-            <button onClick={() => onLike(comment.id)} className="flex items-center gap-1 hover:text-red-500">
-              {comment.likeCount} <span className="text-red-500">❤️</span>
+            <button onClick={() => onLike(comment.id)} className="flex items-center gap-1">
+              {comment.likeCount} 
+              {isLiked ? (
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M5.74683 11.3154C5.82076 11.3678 5.90912 11.3959 5.99971 11.3959C6.0903 11.3959 6.17866 11.3678 6.25258 11.3154L6 10.9584L6.25317 11.3154L6.25783 11.3119L6.27008 11.3032L6.31675 11.2693C6.35719 11.2402 6.41456 11.1976 6.48883 11.1416C7.35566 10.4873 8.17389 9.77106 8.93708 8.99841C9.60675 8.31708 10.2875 7.52083 10.8032 6.67617C11.3165 5.83617 11.6875 4.91217 11.6875 3.98583C11.6875 2.88625 11.3462 2.027 10.7425 1.44366C10.1417 0.863831 9.33083 0.604248 8.47917 0.604248C7.47292 0.604248 6.5845 1.09016 6 1.83916C5.4155 1.09016 4.5265 0.604248 3.52083 0.604248C1.72417 0.604248 0.3125 2.14366 0.3125 3.98583C0.3125 4.91217 0.684083 5.83558 1.19683 6.67617C1.7125 7.52083 2.39325 8.31708 3.06292 8.999C3.87655 9.82217 4.75261 10.5812 5.68325 11.2693L5.72992 11.3032L5.74217 11.3119L5.74683 11.3154Z" fill="#FF8181"/>
+                </svg>
+              ) : (
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M8.47949 1.10425C9.23205 1.10431 9.90783 1.33284 10.3955 1.80347C10.8818 2.27352 11.1875 2.99218 11.1875 3.98608C11.1874 4.78323 10.8662 5.61514 10.377 6.41577H10.376C9.88744 7.21593 9.23525 7.98156 8.58105 8.64722C7.83498 9.40251 7.03487 10.1024 6.1875 10.7419C6.11409 10.7973 6.06051 10.838 6.02441 10.864L6.02344 10.865L6 10.8816L5.97949 10.8669H5.98047C5.18431 10.2782 4.42904 9.63647 3.71973 8.94604L3.41895 8.64722C2.84646 8.06416 2.27548 7.40528 1.81445 6.71362L1.62402 6.41577C1.13496 5.61402 0.812568 4.78306 0.8125 3.98608C0.8125 2.38998 2.02939 1.10444 3.52051 1.10425C4.35886 1.10425 5.10723 1.50875 5.60547 2.14722L6 2.6521L6.39453 2.14722C6.89281 1.50871 7.6406 1.10425 8.47949 1.10425Z" stroke="#565656"/>
+                </svg>
+              )}
             </button>
           </div>
           
@@ -179,6 +205,7 @@ function CommentItem({
                   comment={reply}
                   currentUser={currentUser}
                   onLike={onLike}
+                  isLiked={false}
                   onReply={onReply}
                   onDelete={onDelete}
                   isReplying={false}
