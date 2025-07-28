@@ -2,102 +2,185 @@ import Image from "next/image";
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="bg-gray-50 min-h-screen">
+      {/* Header */}
+      <header className="bg-white px-4 py-3 flex items-center justify-between shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
+          <span className="text-lg font-medium">어플로고</span>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div className="flex items-center gap-4">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5-5-5 5z" />
+          </svg>
+        </div>
+      </header>
+
+      <div className="px-4 py-6 space-y-6">
+        {/* Today's Everyone's Worries Section */}
+        <div>
+          <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+            오늘 모두의 고민 <span className="text-yellow-500">⭐</span>
+          </h2>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+              <div className="flex gap-2 mb-2">
+                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">초등학교 선생님</span>
+                <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">2년차 </span>
+              </div>
+              <h3 className="font-medium mb-2">오늘 아이가 어떠구</h3>
+              <p className="text-sm text-gray-600 leading-tight mb-3">
+                내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용...
+              </p>
+              <div className="flex items-center gap-3 text-sm text-gray-500">
+                <span className="flex items-center gap-1">
+                  <span className="text-red-500">❤️</span> 15
+                </span>
+                <span className="flex items-center gap-1">
+                  <span>💬</span> 7
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+              <div className="flex gap-2 mb-2">
+                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">초등학교 선생님</span>
+                <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">2년차 </span>
+              </div>
+              <h3 className="font-medium mb-2">오늘 아이가 어떠구</h3>
+              <p className="text-sm text-gray-600 leading-tight mb-3">
+                내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용...
+              </p>
+              <div className="flex items-center gap-3 text-sm text-gray-500">
+                <span className="flex items-center gap-1">
+                  <span className="text-red-500">❤️</span> 15
+                </span>
+                <span className="flex items-center gap-1">
+                  <span>💬</span> 7
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Counselors Section */}
+        <div className="bg-gray-200 rounded-lg p-4">
+          <h2 className="text-base font-bold text-gray-700 mb-4">00님의 주변에 이런 상담사분들이 계세요</h2>
+          
+          <div className="bg-white rounded-lg p-4 flex items-center justify-between">
+            <div className="w-20 h-16 bg-gray-100 rounded-lg"></div>
+            <div className="flex-1 ml-4">
+              <h3 className="font-medium text-red-500 mb-1">상담 예약하기</h3>
+              <p className="text-sm text-gray-500">상담 코칭 예약</p>
+            </div>
+            <div className="text-4xl">📋</div>
+          </div>
+        </div>
+
+        {/* Popular Topic Section */}
+        <div>
+          <h2 className="text-lg font-bold mb-4">인기 주제 #이직고민</h2>
+          
+          <div className="space-y-4">
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+              <div className="flex gap-2 mb-2">
+                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">초등학교 선생님</span>
+                <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">2년차 </span>
+              </div>
+              <h3 className="font-medium mb-2">오늘 아이가 어떠구</h3>
+              <p className="text-sm text-gray-600 leading-tight mb-3">
+                내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용...
+              </p>
+              <div className="flex items-center gap-3 text-sm text-gray-500">
+                <span className="flex items-center gap-1">
+                  <span className="text-red-500">❤️</span> 15
+                </span>
+                <span className="flex items-center gap-1">
+                  <span>💬</span> 7
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+              <div className="flex gap-2 mb-2">
+                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">초등학교 선생님</span>
+                <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">2년차 </span>
+              </div>
+              <h3 className="font-medium mb-2">오늘 아이가 어떠구</h3>
+              <p className="text-sm text-gray-600 leading-tight mb-3">
+                내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용...
+              </p>
+              <div className="flex items-center gap-3 text-sm text-gray-500">
+                <span className="flex items-center gap-1">
+                  <span className="text-red-500">❤️</span> 15
+                </span>
+                <span className="flex items-center gap-1">
+                  <span>💬</span> 7
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Government Support Section */}
+        <div className="bg-gray-200 rounded-lg p-4">
+          <div className="text-center">
+            <h2 className="text-base font-bold text-gray-700 mb-2">(국가심리지원사업정부)</h2>
+            <div className="bg-gray-400 text-white text-sm px-3 py-1 rounded-full inline-block">
+              2 / 10
+            </div>
+          </div>
+        </div>
+
+        {/* Interest Topic Section */}
+        <div>
+          <h2 className="text-lg font-bold mb-4">관심 주제 #학생지도</h2>
+          
+          <div className="space-y-4">
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+              <div className="flex gap-2 mb-2">
+                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">초등학교 선생님</span>
+                <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">2년차 </span>
+              </div>
+              <h3 className="font-medium mb-2">오늘 아이가 어떠구</h3>
+              <p className="text-sm text-gray-600 leading-tight mb-3">
+                내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용...
+              </p>
+              <div className="flex items-center gap-3 text-sm text-gray-500">
+                <span className="flex items-center gap-1">
+                  <span className="text-red-500">❤️</span> 15
+                </span>
+                <span className="flex items-center gap-1">
+                  <span>💬</span> 7
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+              <div className="flex gap-2 mb-2">
+                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">초등학교 선생님</span>
+                <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">2년차 </span>
+              </div>
+              <h3 className="font-medium mb-2">오늘 아이가 어떠구</h3>
+              <p className="text-sm text-gray-600 leading-tight mb-3">
+                내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용...
+              </p>
+              <div className="flex items-center gap-3 text-sm text-gray-500">
+                <span className="flex items-center gap-1">
+                  <span className="text-red-500">❤️</span> 15
+                </span>
+                <span className="flex items-center gap-1">
+                  <span>💬</span> 7
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
