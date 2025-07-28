@@ -1,10 +1,19 @@
+'use client';
+
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import BottomNavigation from "@/components/BottomNavigation";
 
 export default function Home() {
+  const router = useRouter();
+
+  const handlePostClick = (postId: string) => {
+    router.push(`/post/${postId}`);
+  };
   return (
-    <div className="bg-gray-50 min-h-screen">
-      {/* Header */}
-      <header className="bg-white px-4 py-3 flex items-center justify-between shadow-sm">
+    <div className="bg-gray-50 min-h-screen pb-20">
+      {/* Fixed Header */}
+      <header className="fixed top-0 left-0 right-0 bg-white px-4 py-3 flex items-center justify-between shadow-sm z-50">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
           <span className="text-lg font-medium">어플로고</span>
@@ -19,7 +28,8 @@ export default function Home() {
         </div>
       </header>
 
-      <div className="px-4 py-6 space-y-6">
+      {/* Content with top padding for fixed header */}
+      <div className="pt-16 px-4 py-6 space-y-6">
         {/* Today's Everyone's Worries Section */}
         <div>
           <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
@@ -27,7 +37,7 @@ export default function Home() {
           </h2>
           
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white rounded-lg p-4 shadow-sm">
+            <div className="bg-white rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => handlePostClick('1')}>
               <div className="flex gap-2 mb-2">
                 <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">초등학교 선생님</span>
                 <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">2년차 </span>
@@ -46,7 +56,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg p-4 shadow-sm">
+            <div className="bg-white rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => handlePostClick('2')}>
               <div className="flex gap-2 mb-2">
                 <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">초등학교 선생님</span>
                 <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">2년차 </span>
@@ -86,7 +96,7 @@ export default function Home() {
           <h2 className="text-lg font-bold mb-4">인기 주제 #이직고민</h2>
           
           <div className="space-y-4">
-            <div className="bg-white rounded-lg p-4 shadow-sm">
+            <div className="bg-white rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => handlePostClick('3')}>
               <div className="flex gap-2 mb-2">
                 <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">초등학교 선생님</span>
                 <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">2년차 </span>
@@ -105,7 +115,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg p-4 shadow-sm">
+            <div className="bg-white rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => handlePostClick('4')}>
               <div className="flex gap-2 mb-2">
                 <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">초등학교 선생님</span>
                 <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">2년차 </span>
@@ -141,7 +151,7 @@ export default function Home() {
           <h2 className="text-lg font-bold mb-4">관심 주제 #학생지도</h2>
           
           <div className="space-y-4">
-            <div className="bg-white rounded-lg p-4 shadow-sm">
+            <div className="bg-white rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => handlePostClick('5')}>
               <div className="flex gap-2 mb-2">
                 <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">초등학교 선생님</span>
                 <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">2년차 </span>
@@ -160,7 +170,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg p-4 shadow-sm">
+            <div className="bg-white rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => handlePostClick('6')}>
               <div className="flex gap-2 mb-2">
                 <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">초등학교 선생님</span>
                 <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">2년차 </span>
@@ -181,6 +191,8 @@ export default function Home() {
           </div>
         </div>
       </div>
+      
+      <BottomNavigation />
     </div>
   );
 }
