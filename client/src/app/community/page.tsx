@@ -12,11 +12,27 @@ export default function Community() {
   const [showSchoolDropdown, setShowSchoolDropdown] = useState(false);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
 
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.dropdown-container')) {
+        setShowSchoolDropdown(false);
+        setShowSortDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
       {/* Fixed Header */}
       <header className="fixed top-0 left-0 right-0 bg-white px-4 py-3 flex items-center justify-between shadow-sm z-50">
-        <div className="relative">
+        <div className="relative dropdown-container">
           <button 
             className="flex items-center gap-2"
             onClick={() => setShowSchoolDropdown(!showSchoolDropdown)}
@@ -106,7 +122,7 @@ export default function Community() {
 
         {/* Filter */}
         <div className="bg-white px-4 py-3 flex items-center justify-between border-b border-gray-100">
-          <div className="relative">
+          <div className="relative dropdown-container">
             <button 
               className="flex items-center gap-2"
               onClick={() => setShowSortDropdown(!showSortDropdown)}
@@ -185,6 +201,16 @@ export default function Community() {
           ))}
         </div>
       </div>
+      
+      {/* Floating Write Button */}
+      <button
+        className="fixed bottom-24 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors z-40 flex items-center justify-center"
+        onClick={() => router.push('/write')}
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+        </svg>
+      </button>
       
       <BottomNavigation />
     </div>
