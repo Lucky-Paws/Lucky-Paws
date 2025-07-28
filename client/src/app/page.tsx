@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Header from '@/components/common/Header';
 import PostCard from '@/components/post/PostCard';
 import BottomNavigation from '@/components/BottomNavigation';
@@ -8,10 +10,32 @@ import { usePosts } from '@/hooks/usePosts';
 import { TeacherLevel } from '@/types';
 
 export default function Home() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [selectedLevel, setSelectedLevel] = useState<TeacherLevel>('초등학교');
   const { posts: todaysPosts } = usePosts({ sortBy: 'popular' });
-  const { posts: careerPosts } = usePosts({ category: '이직고민' });
+  const { posts: careerPosts } = usePosts({ category: '학부모상담' });
   const { posts: guidancePosts } = usePosts({ category: '학생지도' });
+
+  useEffect(() => {
+    if (status === 'loading') return; // 로딩 중일 때는 기다림
+    if (!session) {
+      router.push('/landing'); // 로그인되지 않으면 랜딩페이지로
+    }
+  }, [session, status, router]);
+
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">로딩중...</div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return null; // 리다이렉트 중일 때는 아무것도 표시하지 않음
+  }
+
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
       <Header />
@@ -24,9 +48,11 @@ export default function Home() {
             오늘 모두의 고민 <span className="text-yellow-500">⭐</span>
           </h2>
           
-          <div className="grid grid-cols-2 gap-3">
-            {todaysPosts.slice(0, 2).map((post) => (
-              <PostCard key={post.id} post={post} />
+          <div className="flex gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-2">
+            {todaysPosts.slice(0, 4).map((post) => (
+              <div key={post.id} className="flex-shrink-0 w-72">
+                <PostCard post={post} />
+              </div>
             ))}
           </div>
         </div>

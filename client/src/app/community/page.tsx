@@ -1,7 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import Header from '@/components/common/Header';
 import FilterDropdown from '@/components/common/FilterDropdown';
 import PostCard from '@/components/post/PostCard';
@@ -10,6 +11,7 @@ import { usePosts } from '@/hooks/usePosts';
 import { PostCategory, TeacherLevel, TabOption, SortOption } from '@/types';
 
 export default function Community() {
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabOption>('미답변');
   const [selectedSchool, setSelectedSchool] = useState<TeacherLevel>('초등학교');
@@ -23,12 +25,36 @@ export default function Community() {
     category: selectedCategory || undefined
   });
 
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (!session) {
+      router.push('/landing');
+    }
+  }, [session, status, router]);
+
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">로딩중...</div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return null;
+  }
+
   const categories: { name: PostCategory; icon: string }[] = [
     { name: '학생지도', icon: '👨‍🏫' },
     { name: '수업운영', icon: '📚' },
     { name: '평가/과제', icon: '📝' },
     { name: '학부모상담', icon: '🗣️' },
     { name: '학부모', icon: '👨‍👩‍👧' }
+  ];
+
+  const allCategories = [
+    '학생 지도', '수업 운영', '평가/과제', '학부모 상담',
+    '동료 관계', '상사 관계', '동료 관계'
   ];
 
   return (
@@ -55,25 +81,15 @@ export default function Community() {
       {/* Content with top padding for fixed header */}
       <div className="pt-16">
         {/* Categories */}
-        <div className="bg-white px-4 py-6">
-          <div className="flex justify-between items-center">
-            {categories.map(({ name, icon }) => (
-              <button
-                key={name}
-                onClick={() => setSelectedCategory(selectedCategory === name ? null : name)}
-                className="flex flex-col items-center"
-              >
-                <div className={`w-14 h-14 rounded-full mb-2 flex items-center justify-center text-2xl ${
-                  selectedCategory === name ? 'bg-blue-100' : 'bg-gray-100'
-                }`}>
-                  {icon}
-                </div>
-                <span className={`text-sm ${
-                  selectedCategory === name ? 'text-blue-600 font-medium' : 'text-gray-700'
-                }`}>
-                  {name.replace('/', '/')}
-                </span>
-              </button>
+        <div className="bg-white py-6">
+          <div 
+            className="flex gap-6 px-4 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+          >
+            {allCategories.map((category, index) => (
+              <div key={index} className="flex flex-col items-center flex-shrink-0">
+                <div className="w-14 h-14 bg-gray-300 rounded-full mb-2"></div>
+                <span className="text-sm text-gray-700 whitespace-nowrap">{category}</span>
+              </div>
             ))}
           </div>
         </div>
