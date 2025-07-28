@@ -1,32 +1,20 @@
 'use client';
 
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import BottomNavigation from "@/components/BottomNavigation";
+import { useState } from 'react';
+import Header from '@/components/common/Header';
+import PostCard from '@/components/post/PostCard';
+import BottomNavigation from '@/components/BottomNavigation';
+import { usePosts } from '@/hooks/usePosts';
+import { TeacherLevel } from '@/types';
 
 export default function Home() {
-  const router = useRouter();
-
-  const handlePostClick = (postId: string) => {
-    router.push(`/post/${postId}`);
-  };
+  const [selectedLevel, setSelectedLevel] = useState<TeacherLevel>('초등학교');
+  const { posts: todaysPosts } = usePosts({ sortBy: 'popular' });
+  const { posts: careerPosts } = usePosts({ category: '이직고민' });
+  const { posts: guidancePosts } = usePosts({ category: '학생지도' });
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
-      {/* Fixed Header */}
-      <header className="fixed top-0 left-0 right-0 bg-white px-4 py-3 flex items-center justify-between shadow-sm z-50">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
-          <span className="text-lg font-medium">어플로고</span>
-        </div>
-        <div className="flex items-center gap-4">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5-5-5 5z" />
-          </svg>
-        </div>
-      </header>
+      <Header />
 
       {/* Content with top padding for fixed header */}
       <div className="pt-16 px-4 py-6 space-y-6">
@@ -37,43 +25,9 @@ export default function Home() {
           </h2>
           
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => handlePostClick('1')}>
-              <div className="flex gap-2 mb-2">
-                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">초등학교 선생님</span>
-                <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">2년차 </span>
-              </div>
-              <h3 className="font-medium mb-2">오늘 아이가 어떠구</h3>
-              <p className="text-sm text-gray-600 leading-tight mb-3">
-                내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용...
-              </p>
-              <div className="flex items-center gap-3 text-sm text-gray-500">
-                <span className="flex items-center gap-1">
-                  <span className="text-red-500">❤️</span> 15
-                </span>
-                <span className="flex items-center gap-1">
-                  <span>💬</span> 7
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => handlePostClick('2')}>
-              <div className="flex gap-2 mb-2">
-                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">초등학교 선생님</span>
-                <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">2년차 </span>
-              </div>
-              <h3 className="font-medium mb-2">오늘 아이가 어떠구</h3>
-              <p className="text-sm text-gray-600 leading-tight mb-3">
-                내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용...
-              </p>
-              <div className="flex items-center gap-3 text-sm text-gray-500">
-                <span className="flex items-center gap-1">
-                  <span className="text-red-500">❤️</span> 15
-                </span>
-                <span className="flex items-center gap-1">
-                  <span>💬</span> 7
-                </span>
-              </div>
-            </div>
+            {todaysPosts.slice(0, 2).map((post) => (
+              <PostCard key={post.id} post={post} />
+            ))}
           </div>
         </div>
 
@@ -96,43 +50,9 @@ export default function Home() {
           <h2 className="text-lg font-bold mb-4">인기 주제 #이직고민</h2>
           
           <div className="space-y-4">
-            <div className="bg-white rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => handlePostClick('3')}>
-              <div className="flex gap-2 mb-2">
-                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">초등학교 선생님</span>
-                <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">2년차 </span>
-              </div>
-              <h3 className="font-medium mb-2">오늘 아이가 어떠구</h3>
-              <p className="text-sm text-gray-600 leading-tight mb-3">
-                내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용...
-              </p>
-              <div className="flex items-center gap-3 text-sm text-gray-500">
-                <span className="flex items-center gap-1">
-                  <span className="text-red-500">❤️</span> 15
-                </span>
-                <span className="flex items-center gap-1">
-                  <span>💬</span> 7
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => handlePostClick('4')}>
-              <div className="flex gap-2 mb-2">
-                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">초등학교 선생님</span>
-                <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">2년차 </span>
-              </div>
-              <h3 className="font-medium mb-2">오늘 아이가 어떠구</h3>
-              <p className="text-sm text-gray-600 leading-tight mb-3">
-                내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용...
-              </p>
-              <div className="flex items-center gap-3 text-sm text-gray-500">
-                <span className="flex items-center gap-1">
-                  <span className="text-red-500">❤️</span> 15
-                </span>
-                <span className="flex items-center gap-1">
-                  <span>💬</span> 7
-                </span>
-              </div>
-            </div>
+            {careerPosts.slice(0, 2).map((post) => (
+              <PostCard key={post.id} post={post} />
+            ))}
           </div>
         </div>
 
@@ -151,43 +71,9 @@ export default function Home() {
           <h2 className="text-lg font-bold mb-4">관심 주제 #학생지도</h2>
           
           <div className="space-y-4">
-            <div className="bg-white rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => handlePostClick('5')}>
-              <div className="flex gap-2 mb-2">
-                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">초등학교 선생님</span>
-                <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">2년차 </span>
-              </div>
-              <h3 className="font-medium mb-2">오늘 아이가 어떠구</h3>
-              <p className="text-sm text-gray-600 leading-tight mb-3">
-                내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용...
-              </p>
-              <div className="flex items-center gap-3 text-sm text-gray-500">
-                <span className="flex items-center gap-1">
-                  <span className="text-red-500">❤️</span> 15
-                </span>
-                <span className="flex items-center gap-1">
-                  <span>💬</span> 7
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => handlePostClick('6')}>
-              <div className="flex gap-2 mb-2">
-                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">초등학교 선생님</span>
-                <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">2년차 </span>
-              </div>
-              <h3 className="font-medium mb-2">오늘 아이가 어떠구</h3>
-              <p className="text-sm text-gray-600 leading-tight mb-3">
-                내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용...
-              </p>
-              <div className="flex items-center gap-3 text-sm text-gray-500">
-                <span className="flex items-center gap-1">
-                  <span className="text-red-500">❤️</span> 15
-                </span>
-                <span className="flex items-center gap-1">
-                  <span>💬</span> 7
-                </span>
-              </div>
-            </div>
+            {guidancePosts.slice(0, 2).map((post) => (
+              <PostCard key={post.id} post={post} />
+            ))}
           </div>
         </div>
       </div>

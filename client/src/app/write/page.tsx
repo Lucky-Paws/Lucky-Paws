@@ -1,104 +1,159 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import BottomNavigation from "@/components/BottomNavigation";
+import { useRouter } from 'next/navigation';
+import Header from '@/components/common/Header';
+import BottomNavigation from '@/components/BottomNavigation';
+import { PostCategory, TeacherLevel, ExperienceYears } from '@/types';
 
-export default function Write() {
+export default function WritePage() {
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('학생 지도');
+  const [category, setCategory] = useState<PostCategory>('학생지도');
+  const [teacherLevel, setTeacherLevel] = useState<TeacherLevel>('초등학교');
+  const [experienceYears, setExperienceYears] = useState<ExperienceYears>('1년차');
+  const [isAnonymous, setIsAnonymous] = useState(false);
 
-  const categories = ['학생 지도', '수업 운영', '평가/과제', '학부모 상담', '학부모'];
+  const categories: PostCategory[] = ['학생지도', '수업운영', '평가/과제', '학부모상담', '학부모'];
+  const levels: TeacherLevel[] = ['초등학교', '중학교', '고등학교'];
+  const experiences: ExperienceYears[] = ['1년차', '2년차', '3년차', '4년차', '5년차', '6-10년차', '11-20년차', '20년차 이상'];
 
   const handleSubmit = () => {
-    // 글 작성 로직 (여기서는 간단히 뒤로가기)
+    if (!title.trim() || !content.trim()) {
+      alert('제목과 내용을 모두 입력해주세요.');
+      return;
+    }
+
+    // TODO: API call to create post
+    console.log({
+      title,
+      content,
+      category,
+      teacherLevel,
+      experienceYears,
+      isAnonymous
+    });
+
+    // Navigate back to previous page
     router.back();
   };
 
   return (
     <div className="bg-white min-h-screen pb-20">
-      {/* Fixed Header */}
-      <header className="fixed top-0 left-0 right-0 bg-white px-4 py-3 flex items-center justify-between border-b border-gray-200 z-50">
-        <div className="flex items-center gap-4">
-          <button onClick={() => router.back()} className="p-1">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h1 className="text-lg font-medium">글쓰기</h1>
-        </div>
-        <button 
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium"
-          onClick={handleSubmit}
-        >
-          완료
-        </button>
-      </header>
+      <Header 
+        title="글쓰기" 
+        showBackButton={true}
+        showSearch={false}
+        showMenu={false}
+      />
 
-      {/* Content with top padding for fixed header */}
       <div className="pt-16 p-4">
-        {/* Category Selection */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-3">카테고리</label>
-          <div className="flex flex-wrap gap-2">
-            {categories.map((category) => (
-              <button
-                key={category}
-                className={`px-3 py-2 rounded-full text-sm ${
-                  selectedCategory === category
-                    ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                    : 'bg-gray-100 text-gray-700 border border-gray-200'
-                }`}
-                onClick={() => setSelectedCategory(category)}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Title Input */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">제목</label>
-          <input
-            type="text"
-            placeholder="제목을 입력하세요"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
+        <input
+          type="text"
+          placeholder="제목을 입력하세요"
+          className="w-full text-xl font-medium outline-none py-3 border-b border-gray-200"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
 
         {/* Content Input */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">내용</label>
-          <textarea
-            placeholder="내용을 입력하세요..."
-            rows={12}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-          />
+        <textarea
+          placeholder="내용을 입력하세요"
+          className="w-full outline-none py-4 min-h-[300px] resize-none"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+        />
+
+        {/* Category Selection */}
+        <div className="border-t border-gray-200 pt-4 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">카테고리</label>
+            <div className="flex flex-wrap gap-2">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setCategory(cat)}
+                  className={`px-3 py-1 rounded-full text-sm ${
+                    category === cat
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Teacher Level */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">학교급</label>
+            <div className="flex gap-2">
+              {levels.map((level) => (
+                <button
+                  key={level}
+                  onClick={() => setTeacherLevel(level)}
+                  className={`px-3 py-1 rounded-full text-sm ${
+                    teacherLevel === level
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  {level}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Experience Years */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">경력</label>
+            <div className="flex flex-wrap gap-2">
+              {experiences.map((exp) => (
+                <button
+                  key={exp}
+                  onClick={() => setExperienceYears(exp)}
+                  className={`px-3 py-1 rounded-full text-sm ${
+                    experienceYears === exp
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  {exp}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Anonymous Option */}
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="anonymous"
+              checked={isAnonymous}
+              onChange={(e) => setIsAnonymous(e.target.checked)}
+              className="w-4 h-4"
+            />
+            <label htmlFor="anonymous" className="text-sm text-gray-700">
+              익명으로 작성
+            </label>
+          </div>
         </div>
 
-        {/* Tags Input */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">태그</label>
-          <div className="flex gap-2 mb-3">
-            <span className="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">초등학교 선생님</span>
-            <span className="bg-gray-100 text-gray-600 text-sm px-3 py-1 rounded-full">3년차</span>
-          </div>
-          <input
-            type="text"
-            placeholder="태그를 추가하세요"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-          />
+        {/* Submit Button */}
+        <div className="fixed bottom-20 left-0 right-0 bg-white border-t border-gray-200 p-4">
+          <button
+            onClick={handleSubmit}
+            className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+          >
+            등록하기
+          </button>
         </div>
       </div>
 
       <BottomNavigation />
     </div>
   );
-} 
+}
