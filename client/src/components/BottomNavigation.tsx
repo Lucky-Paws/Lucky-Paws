@@ -9,6 +9,7 @@ export default function BottomNavigation() {
   const isActive = (path: string) => {
     if (path === '/' && pathname === '/') return true;
     if (path === '/community' && pathname === '/community') return true;
+    if (path === '/chat' && pathname === '/chat') return true;
     return false;
   };
 
@@ -45,16 +46,15 @@ export default function BottomNavigation() {
           <span className="text-xs">고민상담</span>
         </button>
 
-        {/* Tab 3 - 채팅 (준비중) */}
+        {/* Tab 3 - 채팅 */}
         <button
-          className="flex-1 py-3 flex flex-col items-center gap-1 text-gray-400"
-          onClick={handleComingSoon}
+          className={`flex-1 py-3 flex flex-col items-center gap-1 ${
+            isActive('/chat') ? 'text-black' : 'text-gray-400'
+          }`}
+          onClick={() => router.push('/chat')}
         >
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-3 9h-2v2h-2v-2H9V9h4V7h2v2h2v2z"/>
-            <circle cx="8" cy="12" r="1"/>
-            <circle cx="12" cy="12" r="1"/>
-            <circle cx="16" cy="12" r="1"/>
+            <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z"/>
           </svg>
           <span className="text-xs">채팅</span>
         </button>
