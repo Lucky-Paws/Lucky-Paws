@@ -12,37 +12,62 @@ export default function BottomNavigation() {
     return false;
   };
 
+  const handleComingSoon = () => {
+    alert('준비중입니다.');
+  };
+
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
       <div className="flex">
-        {/* Tab 1 - Home */}
+        {/* Tab 1 - 마이 홈 */}
         <button
           className={`flex-1 py-3 flex flex-col items-center gap-1 ${
-            isActive('/') ? 'text-blue-600' : 'text-gray-500'
+            isActive('/') ? 'text-black' : 'text-gray-400'
           }`}
           onClick={() => router.push('/')}
         >
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold ${
-            isActive('/') ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'
-          }`}>
-            1
-          </div>
-          <span className="text-xs">홈</span>
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+          </svg>
+          <span className="text-xs">마이 홈</span>
         </button>
 
-        {/* Tab 2 - Community */}
+        {/* Tab 2 - 고민상담 */}
         <button
           className={`flex-1 py-3 flex flex-col items-center gap-1 ${
-            isActive('/community') ? 'text-blue-600' : 'text-gray-500'
+            isActive('/community') ? 'text-black' : 'text-gray-400'
           }`}
           onClick={() => router.push('/community')}
         >
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold ${
-            isActive('/community') ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'
-          }`}>
-            2
-          </div>
-          <span className="text-xs">커뮤니티</span>
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M6 6h4v4H6V6zm0 8h4v4H6v-4zm8-8h4v4h-4V6zm0 8h4v4h-4v-4z"/>
+          </svg>
+          <span className="text-xs">고민상담</span>
+        </button>
+
+        {/* Tab 3 - 채팅 (준비중) */}
+        <button
+          className="flex-1 py-3 flex flex-col items-center gap-1 text-gray-400"
+          onClick={handleComingSoon}
+        >
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-3 9h-2v2h-2v-2H9V9h4V7h2v2h2v2z"/>
+            <circle cx="8" cy="12" r="1"/>
+            <circle cx="12" cy="12" r="1"/>
+            <circle cx="16" cy="12" r="1"/>
+          </svg>
+          <span className="text-xs">채팅</span>
+        </button>
+
+        {/* Tab 4 - 내 정보 (준비중) */}
+        <button
+          className="flex-1 py-3 flex flex-col items-center gap-1 text-gray-400"
+          onClick={handleComingSoon}
+        >
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+          </svg>
+          <span className="text-xs">내 정보</span>
         </button>
       </div>
     </div>
