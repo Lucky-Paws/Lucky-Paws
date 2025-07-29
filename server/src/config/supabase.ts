@@ -13,7 +13,7 @@ export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 // 데이터베이스 연결 테스트
 export const testSupabaseConnection = async () => {
   try {
-    const { data, error } = await supabase.from('users').select('count').limit(1);
+    const { error } = await supabase.from('users').select('count').limit(1);
     if (error) {
       console.error('Supabase connection test failed:', error);
       return false;

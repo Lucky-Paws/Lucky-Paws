@@ -3,13 +3,13 @@ import { IChatMessage } from '../types';
 
 const chatMessageSchema = new Schema<IChatMessage>(
   {
-    roomId: {
-      type: Schema.Types.ObjectId,
+    room_id: {
+      type: String,
       ref: 'ChatRoom',
       required: true,
     },
-    senderId: {
-      type: Schema.Types.ObjectId,
+    sender_id: {
+      type: String,
       ref: 'User',
       required: true,
     },
@@ -18,26 +18,16 @@ const chatMessageSchema = new Schema<IChatMessage>(
       required: true,
       maxlength: 1000,
     },
-    readBy: [{
-      userId: {
-        type: Schema.Types.ObjectId,
-        ref: 'User',
-      },
-      readAt: {
-        type: Date,
-        default: Date.now,
-      },
-    }],
-    isDeleted: {
+    is_deleted: {
       type: Boolean,
       default: false,
     },
   },
   {
-    timestamps: true,
+    timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
   }
 );
 
-chatMessageSchema.index({ roomId: 1, createdAt: -1 });
+chatMessageSchema.index({ room_id: 1, created_at: -1 });
 
 export const ChatMessage = model<IChatMessage>('ChatMessage', chatMessageSchema);

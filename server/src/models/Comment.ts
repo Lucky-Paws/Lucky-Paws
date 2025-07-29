@@ -3,8 +3,8 @@ import { IComment } from '../types';
 
 const commentSchema = new Schema<IComment>(
   {
-    postId: {
-      type: Schema.Types.ObjectId,
+    post_id: {
+      type: String,
       ref: 'Post',
       required: true,
     },
@@ -14,32 +14,32 @@ const commentSchema = new Schema<IComment>(
       minlength: 1,
       maxlength: 2000,
     },
-    author: {
-      type: Schema.Types.ObjectId,
+    author_id: {
+      type: String,
       ref: 'User',
       required: true,
     },
-    likeCount: {
+    like_count: {
       type: Number,
       default: 0,
     },
-    parentId: {
-      type: Schema.Types.ObjectId,
+    parent_id: {
+      type: String,
       ref: 'Comment',
       default: null,
     },
-    isDeleted: {
+    is_deleted: {
       type: Boolean,
       default: false,
     },
   },
   {
-    timestamps: true,
+    timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
   }
 );
 
-commentSchema.index({ postId: 1, createdAt: -1 });
-commentSchema.index({ author: 1, createdAt: -1 });
-commentSchema.index({ parentId: 1 });
+commentSchema.index({ post_id: 1, created_at: -1 });
+commentSchema.index({ author_id: 1, created_at: -1 });
+commentSchema.index({ parent_id: 1 });
 
 export const Comment = model<IComment>('Comment', commentSchema);

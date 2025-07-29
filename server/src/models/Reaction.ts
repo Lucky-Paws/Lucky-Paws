@@ -3,13 +3,13 @@ import { IReaction } from '../types';
 
 const reactionSchema = new Schema<IReaction>(
   {
-    postId: {
-      type: Schema.Types.ObjectId,
+    post_id: {
+      type: String,
       ref: 'Post',
       required: true,
     },
-    userId: {
-      type: Schema.Types.ObjectId,
+    user_id: {
+      type: String,
       ref: 'User',
       required: true,
     },
@@ -20,11 +20,11 @@ const reactionSchema = new Schema<IReaction>(
     },
   },
   {
-    timestamps: true,
+    timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
   }
 );
 
-reactionSchema.index({ postId: 1, userId: 1 }, { unique: true });
-reactionSchema.index({ postId: 1, type: 1 });
+reactionSchema.index({ post_id: 1, user_id: 1 }, { unique: true });
+reactionSchema.index({ post_id: 1, type: 1 });
 
 export const Reaction = model<IReaction>('Reaction', reactionSchema);

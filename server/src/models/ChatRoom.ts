@@ -4,22 +4,22 @@ import { IChatRoom } from '../types';
 const chatRoomSchema = new Schema<IChatRoom>(
   {
     participants: [{
-      type: Schema.Types.ObjectId,
+      type: String,
       ref: 'User',
       required: true,
     }],
-    lastMessage: {
-      type: Schema.Types.ObjectId,
+    last_message_id: {
+      type: String,
       ref: 'ChatMessage',
       default: null,
     },
   },
   {
-    timestamps: true,
+    timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
   }
 );
 
 chatRoomSchema.index({ participants: 1 });
-chatRoomSchema.index({ updatedAt: -1 });
+chatRoomSchema.index({ updated_at: -1 });
 
 export const ChatRoom = model<IChatRoom>('ChatRoom', chatRoomSchema);

@@ -16,20 +16,20 @@ const postSchema = new Schema<IPost>(
       minlength: 1,
       maxlength: 10000,
     },
-    author: {
-      type: Schema.Types.ObjectId,
+    author_id: {
+      type: String,
       ref: 'User',
       required: true,
     },
-    viewCount: {
+    view_count: {
       type: Number,
       default: 0,
     },
-    likeCount: {
+    like_count: {
       type: Number,
       default: 0,
     },
-    commentCount: {
+    comment_count: {
       type: Number,
       default: 0,
     },
@@ -43,20 +43,20 @@ const postSchema = new Schema<IPost>(
       enum: ['학생지도', '수업운영', '평가/과제', '학부모상담', '학부모', '동료관계', '기타'],
       required: true,
     },
-    teacherLevel: {
+    teacher_level: {
       type: String,
       enum: ['초등학교', '중학교', '고등학교'],
       default: '초등학교',
     },
-    isAnswered: {
+    is_answered: {
       type: Boolean,
       default: false,
     },
-    isHot: {
+    is_hot: {
       type: Boolean,
       default: false,
     },
-    isPinned: {
+    is_pinned: {
       type: Boolean,
       default: false,
     },
@@ -65,13 +65,13 @@ const postSchema = new Schema<IPost>(
     }],
   },
   {
-    timestamps: true,
+    timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
   }
 );
 
 postSchema.index({ title: 'text', content: 'text', tags: 'text' });
-postSchema.index({ author: 1, createdAt: -1 });
-postSchema.index({ category: 1, createdAt: -1 });
-postSchema.index({ isAnswered: 1, createdAt: -1 });
+postSchema.index({ author_id: 1, created_at: -1 });
+postSchema.index({ category: 1, created_at: -1 });
+postSchema.index({ is_answered: 1, created_at: -1 });
 
 export const Post = model<IPost>('Post', postSchema);

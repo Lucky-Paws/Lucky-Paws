@@ -49,7 +49,7 @@ export const authController = {
         profileImage,
       });
 
-      console.log('Social login response:', { userId: user._id, isNewUser });
+      console.log('Social login response:', { userId: user.id, isNewUser });
 
       res.json({
         success: true,

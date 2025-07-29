@@ -65,6 +65,7 @@ export interface ILike {
 
 export interface IChatRoom {
   id: string;
+  participants: string[];
   last_message_id?: string;
   created_at: Date;
   updated_at: Date;

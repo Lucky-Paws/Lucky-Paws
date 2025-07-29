@@ -66,7 +66,7 @@ class InMemoryStorage {
     return post;
   }
 
-  async findPosts(query: any = {}): Promise<any[]> {
+  async findPosts(_query: any = {}): Promise<any[]> {
     return Array.from(this.posts.values());
   }
 

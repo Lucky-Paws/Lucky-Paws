@@ -1,8 +1,6 @@
-import { Post } from '../models/Post';
-import { Like } from '../models/Like';
-import { Comment } from '../models/Comment';
-import { AppError } from '../middleware/errorHandler';
+import { supabase } from '../config/supabase';
 import { IPost } from '../types';
+import { AppError } from '../middleware/errorHandler';
 
 interface PostQuery {
   teacherLevel?: string;
@@ -23,7 +21,6 @@ interface PostListResponse {
 export const postService = {
   async getPosts(query: PostQuery): Promise<PostListResponse> {
     const {
-      teacherLevel,
       category,
       isAnswered,
       sortBy = 'latest',
@@ -31,49 +28,91 @@ export const postService = {
       limit = 20,
     } = query;
 
-    const filter: any = {};
+    let supabaseQuery = supabase
+      .from('posts')
+      .select('*', { count: 'exact' });
 
-    if (category) filter.category = category;
-    if (isAnswered !== undefined) filter.isAnswered = isAnswered;
+    // 필터 적용
+    if (category) {
+      supabaseQuery = supabaseQuery.eq('category', category);
+    }
+    if (isAnswered !== undefined) {
+      supabaseQuery = supabaseQuery.eq('is_answered', isAnswered);
+    }
 
+    // 정렬 적용
+    if (sortBy === 'latest') {
+      supabaseQuery = supabaseQuery.order('created_at', { ascending: false });
+    } else if (sortBy === 'popular') {
+      supabaseQuery = supabaseQuery.order('like_count', { ascending: false });
+    }
+
+    // 페이지네이션
     const pageNum = typeof page === 'string' ? parseInt(page) : page;
     const limitNum = typeof limit === 'string' ? parseInt(limit) : limit;
-    const skip = (pageNum - 1) * limitNum;
+    const from = (pageNum - 1) * limitNum;
+    const to = from + limitNum - 1;
 
-    const sortOptions: any = {
-      latest: { createdAt: -1 },
-      popular: { likeCount: -1, commentCount: -1, viewCount: -1 },
-    };
+    supabaseQuery = supabaseQuery.range(from, to);
 
-    const [posts, total] = await Promise.all([
-      Post.find(filter)
-        .populate('author', 'name avatar type teacherType')
-        .sort(sortOptions[sortBy] || sortOptions.latest)
-        .skip(skip)
-        .limit(limitNum),
-      Post.countDocuments(filter),
-    ]);
+    const { data: posts, error, count } = await supabaseQuery;
+
+    if (error) {
+      throw new AppError('Failed to fetch posts', 500);
+    }
+
+    // 작성자 정보 가져오기
+    const postsWithAuthors = await Promise.all(
+      (posts || []).map(async (post) => {
+        const { data: author } = await supabase
+          .from('users')
+          .select('name, avatar, type, teacher_type')
+          .eq('id', post.author_id)
+          .single();
+        
+        return {
+          ...post,
+          author: author || null,
+        };
+      })
+    );
 
     return {
-      posts,
-      total,
+      posts: postsWithAuthors as IPost[],
+      total: count || 0,
       page: pageNum,
-      totalPages: Math.ceil(total / limitNum),
+      totalPages: Math.ceil((count || 0) / limitNum),
     };
   },
 
   async getPost(postId: string): Promise<IPost> {
-    const post = await Post.findByIdAndUpdate(
-      postId,
-      { $inc: { viewCount: 1 } },
-      { new: true }
-    ).populate('author', 'name avatar type teacherType bio isVerified');
+    // 조회수 증가
+    await supabase
+      .from('posts')
+      .update({ view_count: supabase.rpc('increment') })
+      .eq('id', postId);
 
-    if (!post) {
+    const { data: post, error } = await supabase
+      .from('posts')
+      .select('*')
+      .eq('id', postId)
+      .single();
+
+    if (error || !post) {
       throw new AppError('Post not found', 404);
     }
 
-    return post;
+    // 작성자 정보 가져오기
+    const { data: author } = await supabase
+      .from('users')
+      .select('name, avatar, type, teacher_type, bio, is_verified')
+      .eq('id', post.author_id)
+      .single();
+
+    return {
+      ...post,
+      author: author || null,
+    } as IPost;
   },
 
   async createPost(data: {
@@ -84,17 +123,41 @@ export const postService = {
     tags?: string[];
     authorId: string;
   }): Promise<IPost> {
-    const post = await Post.create({
-      title: data.title,
-      content: data.content,
-      category: data.category,
-      teacherLevel: data.teacherLevel || '초등학교',
-      tags: data.tags || [],
-      author: data.authorId,
-    });
+    const { data: post, error } = await supabase
+      .from('posts')
+      .insert([{
+        title: data.title,
+        content: data.content,
+        category: data.category,
+        teacher_level: data.teacherLevel || '초등학교',
+        tags: data.tags || [],
+        author_id: data.authorId,
+        view_count: 0,
+        like_count: 0,
+        comment_count: 0,
+        is_answered: false,
+        is_hot: false,
+        is_pinned: false,
+        images: [],
+      }])
+      .select()
+      .single();
 
-    await post.populate('author', 'name avatar type teacherType');
-    return post;
+    if (error) {
+      throw new AppError('Failed to create post', 500);
+    }
+
+    // 작성자 정보 가져오기
+    const { data: author } = await supabase
+      .from('users')
+      .select('name, avatar, type, teacher_type')
+      .eq('id', post.author_id)
+      .single();
+
+    return {
+      ...post,
+      author: author || null,
+    } as IPost;
   },
 
   async updatePost(
@@ -107,105 +170,211 @@ export const postService = {
       tags: string[];
     }>
   ): Promise<IPost> {
-    const post = await Post.findById(postId);
+    // 권한 확인
+    const { data: existingPost } = await supabase
+      .from('posts')
+      .select('author_id')
+      .eq('id', postId)
+      .single();
 
-    if (!post) {
+    if (!existingPost) {
       throw new AppError('Post not found', 404);
     }
 
-    if (post.author.toString() !== userId) {
+    if (existingPost.author_id !== userId) {
       throw new AppError('You can only edit your own posts', 403);
     }
 
-    Object.assign(post, data);
-    await post.save();
-    await post.populate('author', 'name avatar type teacherType');
+    const { data: post, error } = await supabase
+      .from('posts')
+      .update(data)
+      .eq('id', postId)
+      .select()
+      .single();
 
-    return post;
+    if (error) {
+      throw new AppError('Failed to update post', 500);
+    }
+
+    // 작성자 정보 가져오기
+    const { data: author } = await supabase
+      .from('users')
+      .select('name, avatar, type, teacher_type')
+      .eq('id', post.author_id)
+      .single();
+
+    return {
+      ...post,
+      author: author || null,
+    } as IPost;
   },
 
   async deletePost(postId: string, userId: string): Promise<void> {
-    const post = await Post.findById(postId);
+    // 권한 확인
+    const { data: existingPost } = await supabase
+      .from('posts')
+      .select('author_id')
+      .eq('id', postId)
+      .single();
 
-    if (!post) {
+    if (!existingPost) {
       throw new AppError('Post not found', 404);
     }
 
-    if (post.author.toString() !== userId) {
+    if (existingPost.author_id !== userId) {
       throw new AppError('You can only delete your own posts', 403);
     }
 
-    await Promise.all([
-      post.deleteOne(),
-      Like.deleteMany({ targetId: postId, targetType: 'post' }),
-      Comment.deleteMany({ postId }),
-    ]);
+    const { error } = await supabase
+      .from('posts')
+      .delete()
+      .eq('id', postId);
+
+    if (error) {
+      throw new AppError('Failed to delete post', 500);
+    }
   },
 
   async likePost(postId: string, userId: string): Promise<void> {
-    const post = await Post.findById(postId);
+    // 게시글 존재 확인
+    const { data: post } = await supabase
+      .from('posts')
+      .select('id')
+      .eq('id', postId)
+      .single();
 
     if (!post) {
       throw new AppError('Post not found', 404);
     }
 
-    const existingLike = await Like.findOne({
-      targetId: postId,
-      targetType: 'post',
-      userId,
-    });
+    // 이미 좋아요 했는지 확인
+    const { data: existingLike } = await supabase
+      .from('likes')
+      .select('id')
+      .eq('target_id', postId)
+      .eq('target_type', 'post')
+      .eq('user_id', userId)
+      .single();
 
     if (existingLike) {
       throw new AppError('You have already liked this post', 400);
     }
 
-    await Like.create({
-      targetId: postId,
-      targetType: 'post',
-      userId,
-    });
+    // 좋아요 생성
+    const { error: likeError } = await supabase
+      .from('likes')
+      .insert([{
+        target_id: postId,
+        target_type: 'post',
+        user_id: userId,
+      }]);
 
-    await Post.findByIdAndUpdate(postId, { $inc: { likeCount: 1 } });
+    if (likeError) {
+      throw new AppError('Failed to like post', 500);
+    }
+
+    // 게시글 좋아요 수 증가
+    await supabase
+      .from('posts')
+      .update({ like_count: supabase.rpc('increment') })
+      .eq('id', postId);
   },
 
   async unlikePost(postId: string, userId: string): Promise<void> {
-    const like = await Like.findOneAndDelete({
-      targetId: postId,
-      targetType: 'post',
-      userId,
-    });
+    // 게시글 존재 확인
+    const { data: post } = await supabase
+      .from('posts')
+      .select('id')
+      .eq('id', postId)
+      .single();
 
-    if (!like) {
-      throw new AppError('You have not liked this post', 400);
+    if (!post) {
+      throw new AppError('Post not found', 404);
     }
 
-    await Post.findByIdAndUpdate(postId, { $inc: { likeCount: -1 } });
+    // 좋아요 삭제
+    const { error } = await supabase
+      .from('likes')
+      .delete()
+      .eq('target_id', postId)
+      .eq('target_type', 'post')
+      .eq('user_id', userId);
+
+    if (error) {
+      throw new AppError('Failed to unlike post', 500);
+    }
+
+    // 게시글 좋아요 수 감소
+    await supabase
+      .from('posts')
+      .update({ like_count: supabase.rpc('decrement') })
+      .eq('id', postId);
   },
 
   async searchPosts(query: string, params: PostQuery): Promise<PostListResponse> {
-    const searchFilter = {
-      $text: { $search: query },
-      ...params,
-    };
+    const {
+      category,
+      isAnswered,
+      sortBy = 'latest',
+      page = 1,
+      limit = 20,
+    } = params;
 
-    const pageNum = typeof params.page === 'string' ? parseInt(params.page) : params.page || 1;
-    const limitNum = typeof params.limit === 'string' ? parseInt(params.limit) : params.limit || 20;
-    const skip = (pageNum - 1) * limitNum;
+    let supabaseQuery = supabase
+      .from('posts')
+      .select('*', { count: 'exact' })
+      .textSearch('title', query);
 
-    const [posts, total] = await Promise.all([
-      Post.find(searchFilter)
-        .populate('author', 'name avatar type teacherType')
-        .sort({ score: { $meta: 'textScore' }, createdAt: -1 })
-        .skip(skip)
-        .limit(limitNum),
-      Post.countDocuments(searchFilter),
-    ]);
+    // 필터 적용
+    if (category) {
+      supabaseQuery = supabaseQuery.eq('category', category);
+    }
+    if (isAnswered !== undefined) {
+      supabaseQuery = supabaseQuery.eq('is_answered', isAnswered);
+    }
+
+    // 정렬 적용
+    if (sortBy === 'latest') {
+      supabaseQuery = supabaseQuery.order('created_at', { ascending: false });
+    } else if (sortBy === 'popular') {
+      supabaseQuery = supabaseQuery.order('like_count', { ascending: false });
+    }
+
+    // 페이지네이션
+    const pageNum = typeof page === 'string' ? parseInt(page) : page;
+    const limitNum = typeof limit === 'string' ? parseInt(limit) : limit;
+    const from = (pageNum - 1) * limitNum;
+    const to = from + limitNum - 1;
+
+    supabaseQuery = supabaseQuery.range(from, to);
+
+    const { data: posts, error, count } = await supabaseQuery;
+
+    if (error) {
+      throw new AppError('Failed to search posts', 500);
+    }
+
+    // 작성자 정보 가져오기
+    const postsWithAuthors = await Promise.all(
+      (posts || []).map(async (post) => {
+        const { data: author } = await supabase
+          .from('users')
+          .select('name, avatar, type, teacher_type')
+          .eq('id', post.author_id)
+          .single();
+        
+        return {
+          ...post,
+          author: author || null,
+        };
+      })
+    );
 
     return {
-      posts,
-      total,
+      posts: postsWithAuthors as IPost[],
+      total: count || 0,
       page: pageNum,
-      totalPages: Math.ceil(total / limitNum),
+      totalPages: Math.ceil((count || 0) / limitNum),
     };
   },
 };

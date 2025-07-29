@@ -1,7 +1,6 @@
-import { Reaction } from '../models/Reaction';
-import { Post } from '../models/Post';
-import { AppError } from '../middleware/errorHandler';
+import { supabase } from '../config/supabase';
 import { IReaction } from '../types';
+import { AppError } from '../middleware/errorHandler';
 
 export const reactionService = {
   async addReaction(data: {
@@ -9,46 +8,86 @@ export const reactionService = {
     userId: string;
     type: 'cheer' | 'empathy' | 'helpful' | 'funny';
   }): Promise<IReaction> {
-    const post = await Post.findById(data.postId);
+    // 게시글 존재 확인
+    const { data: post } = await supabase
+      .from('posts')
+      .select('id')
+      .eq('id', data.postId)
+      .single();
+
     if (!post) {
       throw new AppError('Post not found', 404);
     }
 
-    const existingReaction = await Reaction.findOne({
-      postId: data.postId,
-      userId: data.userId,
-    });
+    // 기존 리액션 확인
+    const { data: existingReaction } = await supabase
+      .from('reactions')
+      .select('*')
+      .eq('post_id', data.postId)
+      .eq('user_id', data.userId)
+      .single();
 
     if (existingReaction) {
-      // Update reaction type if different
+      // 리액션 타입이 다르면 업데이트
       if (existingReaction.type !== data.type) {
-        existingReaction.type = data.type;
-        await existingReaction.save();
-        return existingReaction;
+        const { data: updatedReaction, error } = await supabase
+          .from('reactions')
+          .update({ type: data.type })
+          .eq('id', existingReaction.id)
+          .select()
+          .single();
+
+        if (error) {
+          throw new AppError('Failed to update reaction', 500);
+        }
+
+        return updatedReaction as IReaction;
       }
       throw new AppError('You have already reacted to this post', 400);
     }
 
-    const reaction = await Reaction.create({
-      postId: data.postId,
-      userId: data.userId,
-      type: data.type,
-    });
+    // 새 리액션 생성
+    const { data: reaction, error } = await supabase
+      .from('reactions')
+      .insert([{
+        post_id: data.postId,
+        user_id: data.userId,
+        type: data.type,
+      }])
+      .select()
+      .single();
 
-    return reaction;
+    if (error) {
+      throw new AppError('Failed to create reaction', 500);
+    }
+
+    return reaction as IReaction;
   },
 
   async removeReaction(reactionId: string, userId: string): Promise<void> {
-    const reaction = await Reaction.findById(reactionId);
+    // 리액션 존재 및 권한 확인
+    const { data: reaction } = await supabase
+      .from('reactions')
+      .select('*')
+      .eq('id', reactionId)
+      .single();
 
     if (!reaction) {
       throw new AppError('Reaction not found', 404);
     }
 
-    if (reaction.userId.toString() !== userId) {
+    if (reaction.user_id !== userId) {
       throw new AppError('You can only remove your own reactions', 403);
     }
 
-    await reaction.deleteOne();
+    // 리액션 삭제
+    const { error } = await supabase
+      .from('reactions')
+      .delete()
+      .eq('id', reactionId);
+
+    if (error) {
+      throw new AppError('Failed to remove reaction', 500);
+    }
   },
 };

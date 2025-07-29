@@ -34,12 +34,12 @@ const userSchema = new Schema<IUser>(
       enum: ['mentor', 'mentee'],
       required: true,
     },
-    teacherType: {
+    teacher_type: {
       type: String,
       enum: ['elementary', 'middle', 'high'],
       default: null,
     },
-    yearsOfExperience: {
+    years_of_experience: {
       type: Number,
       min: 0,
       max: 50,
@@ -50,17 +50,17 @@ const userSchema = new Schema<IUser>(
       maxlength: 500,
       default: '',
     },
-    isVerified: {
+    is_verified: {
       type: Boolean,
       default: false,
     },
-    refreshToken: {
+    refresh_token: {
       type: String,
       default: null,
     },
   },
   {
-    timestamps: true,
+    timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
   }
 );
 
@@ -69,7 +69,7 @@ userSchema.pre('save', async function (next) {
   
   try {
     const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
+    (this as any).password = await bcrypt.hash((this as any).password, salt);
     next();
   } catch (error) {
     next(error as Error);
@@ -77,15 +77,13 @@ userSchema.pre('save', async function (next) {
 });
 
 userSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
-  return bcrypt.compare(candidatePassword, this.password);
+  return bcrypt.compare(candidatePassword, (this as any).password);
 };
 
 userSchema.set('toJSON', {
-  transform: (doc, ret) => {
-    delete ret.password;
-    delete ret.refreshToken;
-    delete ret.__v;
-    return ret;
+  transform: (_doc, ret) => {
+    const { password, refresh_token, __v, ...cleanRet } = ret;
+    return cleanRet;
   },
 });
 
