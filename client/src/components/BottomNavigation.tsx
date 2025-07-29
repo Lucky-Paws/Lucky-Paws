@@ -10,6 +10,7 @@ export default function BottomNavigation() {
     if (path === '/' && pathname === '/') return true;
     if (path === '/community' && pathname === '/community') return true;
     if (path === '/chat' && pathname === '/chat') return true;
+    if (path === '/profile' && pathname === '/profile') return true;
     return false;
   };
 
@@ -59,10 +60,12 @@ export default function BottomNavigation() {
           <span className="text-xs">채팅</span>
         </button>
 
-        {/* Tab 4 - 내 정보 (준비중) */}
+        {/* Tab 4 - 내 정보 */}
         <button
-          className="flex-1 py-3 flex flex-col items-center gap-1 text-gray-400"
-          onClick={handleComingSoon}
+          className={`flex-1 py-3 flex flex-col items-center gap-1 ${
+            isActive('/profile') ? 'text-black' : 'text-gray-400'
+          }`}
+          onClick={() => router.push('/profile')}
         >
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>

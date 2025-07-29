@@ -1,30 +1,33 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/common/Header';
 import PostCard from '@/components/post/PostCard';
 import BottomNavigation from '@/components/BottomNavigation';
 import { usePosts } from '@/hooks/usePosts';
 import { TeacherLevel } from '@/types';
+import { isAuthenticated } from '@/utils/auth';
 
 export default function Home() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const [selectedLevel, setSelectedLevel] = useState<TeacherLevel>('초등학교');
+  const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { posts: todaysPosts } = usePosts({ sortBy: 'popular' });
   const { posts: careerPosts } = usePosts({ category: '학부모상담' });
   const { posts: guidancePosts } = usePosts({ category: '학생지도' });
 
   useEffect(() => {
-    if (status === 'loading') return; // 로딩 중일 때는 기다림
-    if (!session) {
-      router.push('/landing'); // 로그인되지 않으면 랜딩페이지로
+    if (!isAuthenticated()) {
+      router.push('/landing');
+      return;
     }
-  }, [session, status, router]);
+    setIsUserAuthenticated(true);
+    setIsLoading(false);
+  }, [router]);
 
-  if (status === 'loading') {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-lg">로딩중...</div>
@@ -32,8 +35,8 @@ export default function Home() {
     );
   }
 
-  if (!session) {
-    return null; // 리다이렉트 중일 때는 아무것도 표시하지 않음
+  if (!isUserAuthenticated) {
+    return null;
   }
 
   return (

@@ -102,13 +102,22 @@ export const authService = {
       });
       
       console.log('New user created:', user._id);
+      console.log('User data saved:', { email: user.email, name: user.name, type: user.type });
     } else {
       console.log('Existing user found:', user._id);
+      console.log('Existing user data:', { email: user.email, name: user.name, type: user.type });
     }
 
     const tokens = this.generateTokens(user);
     user.refreshToken = tokens.refreshToken;
     await user.save();
+
+    // 데이터베이스에 실제로 저장되었는지 확인
+    const savedUser = await User.findById(user._id);
+    console.log('User saved to database:', savedUser ? 'YES' : 'NO');
+    if (savedUser) {
+      console.log('Saved user details:', { id: savedUser._id, email: savedUser.email, name: savedUser.name });
+    }
 
     console.log('Social login successful, isNewUser:', isNewUser);
     return { user, tokens, isNewUser };

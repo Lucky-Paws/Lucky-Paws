@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import Header, { HEADER_HEIGHT } from '@/components/common/Header';
 import FilterDropdown from '@/components/common/FilterDropdown';
 import PostCard from '@/components/post/PostCard';
@@ -11,14 +10,16 @@ import CategoryList from '@/components/common/CategoryList';
 import TabSelector from '@/components/common/TabSelector';
 import { usePosts } from '@/hooks/usePosts';
 import { PostCategory, TeacherLevel, TabOption, SortOption } from '@/types';
+import { isAuthenticated } from '@/utils/auth';
 
 export default function Community() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabOption>('미답변');
   const [selectedSchool, setSelectedSchool] = useState<TeacherLevel>('초등학교');
   const [selectedSort, setSelectedSort] = useState<SortOption>('최신순');
   const [selectedCategory, setSelectedCategory] = useState<PostCategory | null>(null);
+  const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   const { posts, loading } = usePosts({
     teacherLevel: selectedSchool,
@@ -28,13 +29,16 @@ export default function Community() {
   });
 
   useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) {
+    // 토큰 기반 인증 체크
+    if (!isAuthenticated()) {
       router.push('/landing');
+      return;
     }
-  }, [session, status, router]);
+    setIsUserAuthenticated(true);
+    setIsLoading(false);
+  }, [router]);
 
-  if (status === 'loading') {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-lg">로딩중...</div>
@@ -42,7 +46,7 @@ export default function Community() {
     );
   }
 
-  if (!session) {
+  if (!isUserAuthenticated) {
     return null;
   }
 

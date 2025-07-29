@@ -38,12 +38,12 @@ export default function Landing() {
       
       if (response.isNewUser) {
         // 신규 사용자 - 추가 정보 입력 필요
-        router.push(`/signup?type=social&email=${mockSocialData.email}&name=${mockSocialData.name}`);
+        console.log('New user, redirecting to signup page');
+        window.location.href = `/signup?type=social&email=${mockSocialData.email}&name=${mockSocialData.name}`;
       } else {
         // 기존 사용자 - community 페이지로
         console.log('Existing user, redirecting to community page');
-        router.push('/community');
-        return; // 함수 종료하여 추가 실행 방지
+        window.location.href = '/community';
       }
     } catch (error) {
       console.error('Social login error:', error);

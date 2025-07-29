@@ -94,7 +94,7 @@ export default function Signup() {
         if (response) {
           console.log('Social signup completed:', response);
           alert('회원가입이 완료되었습니다.');
-          router.push('/community');
+          window.location.href = '/community';
         }
       } else {
         // 일반 회원가입
@@ -102,7 +102,7 @@ export default function Signup() {
         
         if (response) {
           alert('회원가입이 완료되었습니다.');
-          router.push('/');
+          window.location.href = '/';
         }
       }
     } catch (error: any) {

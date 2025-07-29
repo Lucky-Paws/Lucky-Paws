@@ -3,11 +3,13 @@ import { logger } from '../utils/logger';
 
 export const connectDB = async (): Promise<void> => {
   try {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/lucky-paws';
+    // MongoDB Atlas 연결 문자열
+    const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://hisounni:bLaiyEKPrJcwFOCl@cluster0.ckwnzyq.mongodb.net/lucky-paws?retryWrites=true&w=majority';
     
     await mongoose.connect(mongoUri);
-    
-    logger.info('MongoDB connected successfully');
+    logger.info('MongoDB Atlas connected successfully');
+    logger.info('Database name:', mongoose.connection.db.databaseName);
+    logger.info('Connection string:', mongoUri.replace(/\/\/.*@/, '//***:***@')); // 비밀번호 숨김
     
     // 불필요한 인덱스 제거 시도
     try {
