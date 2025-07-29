@@ -36,7 +36,7 @@ const userSchema = new Schema<IUser>(
     },
     teacher_type: {
       type: String,
-      enum: ['elementary', 'middle', 'high'],
+      enum: ['초등학교', '중학교', '고등학교'],
       default: null,
     },
     years_of_experience: {

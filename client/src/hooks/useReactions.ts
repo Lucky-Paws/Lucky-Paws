@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Reaction } from '@/types';
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/config';
@@ -27,24 +27,16 @@ export function useReactions(postId: string, initialCounts: Partial<ReactionsSta
   
   const [userReactions, setUserReactions] = useState<Reaction['type'][]>([]);
   const [loading, setLoading] = useState(false);
+  const initialized = useRef(false);
 
-  // 리액션 상태 가져오기
+  // 리액션 상태 초기화 (한 번만 실행)
   useEffect(() => {
-    const fetchReactions = async () => {
-      try {
-        // 실제로는 서버에서 리액션 상태를 가져와야 하지만,
-        // 현재는 초기값을 사용
-        setReactions({
-          ...initialReactions,
-          ...initialCounts
-        });
-      } catch (err) {
-        console.warn('Failed to fetch reactions:', err);
-      }
-    };
-
-    if (postId) {
-      fetchReactions();
+    if (!initialized.current && postId) {
+      setReactions({
+        ...initialReactions,
+        ...initialCounts
+      });
+      initialized.current = true;
     }
   }, [postId]); // initialCounts 제거
 

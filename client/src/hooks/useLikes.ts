@@ -22,10 +22,10 @@ export function useLikes(postId: string, initialCount: number = 0, initialLiked:
       }
     };
 
-    if (postId) {
+    if (postId && initialCount > 0) {
       fetchLikeStatus();
     }
-  }, [postId]); // initialCount, initialLiked 제거
+  }, [postId, initialCount]); // initialCount 다시 추가하되 조건부 실행
 
   const toggleLike = useCallback(async () => {
     setLoading(true);

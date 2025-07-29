@@ -5,6 +5,23 @@ import { useState, useEffect } from 'react';
 import { authService } from '@/services/authService';
 import { checkServerStatus, getServerStatusMessage, ServerStatus } from '@/utils/serverStatus';
 
+// 고유한 사용자 ID 생성 함수
+const generateUniqueUserId = (provider: string): string => {
+  // 세션 기반 고유 ID 생성 (브라우저 세션 동안 유지)
+  const sessionKey = `social_user_${provider}`;
+  let userId = localStorage.getItem(sessionKey);
+  
+  if (!userId) {
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 1000000);
+    const sessionId = Math.random().toString(36).substr(2, 9);
+    userId = `${provider}_${timestamp}_${random}_${sessionId}`;
+    localStorage.setItem(sessionKey, userId);
+  }
+  
+  return userId;
+};
+
 export default function Landing() {
   const router = useRouter();
   const [serverStatus, setServerStatus] = useState<ServerStatus | null>(null);
@@ -49,11 +66,12 @@ export default function Landing() {
   const handleTestSocialLogin = async (provider: 'google' | 'kakao') => {
     try {
       // 실제로는 OAuth로 받은 데이터를 사용
+      const uniqueId = generateUniqueUserId(provider);
       const mockSocialData = {
         provider,
-        accessToken: 'mock-access-token',
-        email: `test@${provider}.com`,
-        name: `${provider} 사용자`,
+        accessToken: `mock-access-token-${Date.now()}`,
+        email: `${uniqueId}@noemail.local`,
+        name: `${provider} 사용자 ${uniqueId.split('_')[1]}`, // 타임스탬프 부분을 이름으로 사용
         profileImage: undefined,
       };
 

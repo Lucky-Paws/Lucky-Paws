@@ -7,7 +7,7 @@ export interface IUser {
   password: string;
   avatar?: string;
   type: 'mentor' | 'mentee';
-  teacher_type?: 'elementary' | 'middle' | 'high';
+  teacher_type?: '초등학교' | '중학교' | '고등학교';
   years_of_experience?: number;
   bio?: string;
   is_verified: boolean;

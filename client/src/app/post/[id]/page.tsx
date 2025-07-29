@@ -21,7 +21,6 @@ export default function PostDetail() {
   
   const { post, loading } = usePost(postId);
   const { comments, addComment, likeComment, deleteComment } = useComments(postId);
-  const { likeCount, isLiked, toggleLike } = useLikes(postId, post?.likeCount || 0);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -34,6 +33,9 @@ export default function PostDetail() {
     };
     loadUser();
   }, []);
+
+  // post가 로드된 후에만 다른 훅들 실행
+  const { likeCount, isLiked, toggleLike } = useLikes(postId, post?.likeCount || 0);
   const { reactions, userReactions, toggleReaction } = useReactions(postId, {
     cheer: 2,
     empathy: 3,

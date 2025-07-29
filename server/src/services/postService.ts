@@ -22,6 +22,7 @@ export const postService = {
   async getPosts(query: PostQuery): Promise<PostListResponse> {
     const {
       category,
+      teacherLevel,
       isAnswered,
       sortBy = 'latest',
       page = 1,
@@ -35,6 +36,9 @@ export const postService = {
     // 필터 적용
     if (category) {
       supabaseQuery = supabaseQuery.eq('category', category);
+    }
+    if (teacherLevel) {
+      supabaseQuery = supabaseQuery.eq('teacher_level', teacherLevel);
     }
     if (isAnswered !== undefined) {
       supabaseQuery = supabaseQuery.eq('is_answered', isAnswered);
@@ -314,6 +318,7 @@ export const postService = {
   async searchPosts(query: string, params: PostQuery): Promise<PostListResponse> {
     const {
       category,
+      teacherLevel,
       isAnswered,
       sortBy = 'latest',
       page = 1,
@@ -328,6 +333,9 @@ export const postService = {
     // 필터 적용
     if (category) {
       supabaseQuery = supabaseQuery.eq('category', category);
+    }
+    if (teacherLevel) {
+      supabaseQuery = supabaseQuery.eq('teacher_level', teacherLevel);
     }
     if (isAnswered !== undefined) {
       supabaseQuery = supabaseQuery.eq('is_answered', isAnswered);

@@ -6,7 +6,7 @@ export const authValidation = {
     email: Joi.string().email().required(),
     password: Joi.string().min(6).required(),
     type: Joi.string().valid('mentor', 'mentee').required(),
-    teacherType: Joi.string().valid('elementary', 'middle', 'high').when('type', {
+    teacherType: Joi.string().valid('초등학교', '중학교', '고등학교').when('type', {
       is: 'mentor',
       then: Joi.required(),
       otherwise: Joi.optional(),
@@ -44,11 +44,12 @@ export const postValidation = {
   }),
 
   query: Joi.object({
-    teacherLevel: Joi.string().valid('elementary', 'middle', 'high'),
+    teacherLevel: Joi.string().valid('초등학교', '중학교', '고등학교').optional(),
     category: Joi.string()
-      .valid('학생지도', '수업운영', '평가/과제', '학부모상담', '학부모', '동료관계', '기타'),
-    isAnswered: Joi.boolean(),
-    sortBy: Joi.string().valid('latest', 'popular'),
+      .valid('학생지도', '수업운영', '평가/과제', '학부모상담', '학부모', '동료관계', '기타')
+      .optional(),
+    isAnswered: Joi.boolean().truthy('true').falsy('false').optional(),
+    sortBy: Joi.string().valid('latest', 'popular').optional(),
     page: Joi.number().min(1).default(1),
     limit: Joi.number().min(1).max(100).default(20),
   }),
