@@ -23,7 +23,7 @@ const reactionConfig = [
 
 export default function ReactionButtons({ reactions, userReactions, onReactionToggle }: ReactionButtonsProps) {
   return (
-    <div className="flex gap-2 mb-4">
+    <div className="flex gap-1 mb-4 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
       {reactionConfig.map(({ type, label, icon }) => {
         const isActive = userReactions.includes(type);
         const count = reactions[type];
@@ -32,10 +32,10 @@ export default function ReactionButtons({ reactions, userReactions, onReactionTo
           <button
             key={type}
             onClick={() => onReactionToggle(type)}
-            className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition-colors ${
+            className={`px-2 py-1 rounded-lg text-xs flex items-center gap-1 transition-colors border whitespace-nowrap flex-shrink-0 ${
               isActive
-                ? 'bg-blue-100 text-blue-700'
-                : 'bg-white text-gray-700 hover:bg-gray-50'
+                ? 'bg-blue-100 text-blue-700 border-blue-300'
+                : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-200'
             }`}
           >
             <span className="text-gray-400 text-xs">{icon}</span>
