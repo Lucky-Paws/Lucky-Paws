@@ -3,38 +3,88 @@
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
+import { authService, SignupRequestDto } from '@/services/authService';
 
 export default function Signup() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [formData, setFormData] = useState<SignupRequestDto>({
+    email: '',
+    password: '', // 임시 비밀번호로 자동 생성됨
+    name: '',
+    nickname: '',
+    careerYear: 1,
+    schoolLevel: ''
+  });
   const [selectedCareer, setSelectedCareer] = useState('교직 경력');
   const [selectedSchool, setSelectedSchool] = useState('학교 선택');
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [showCareerDropdown, setShowCareerDropdown] = useState(false);
   const [showSchoolDropdown, setShowSchoolDropdown] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const careerOptions = ['1년차', '2년차', '3년차', '4년차', '5년차', '6-10년차', '11-20년차', '20년차 이상'];
-  const schoolOptions = ['초등학교', '중학교', '고등학교'];
+  const schoolOptions = ['초등', '중등', '고등'];
 
   useEffect(() => {
     if (status === 'loading') return;
     if (!session) {
       router.push('/landing');
+    } else {
+      // 소셜 로그인 정보를 기본값으로 설정
+      setFormData(prev => ({
+        ...prev,
+        email: session.user?.email || '',
+        name: session.user?.name || ''
+      }));
     }
   }, [session, status, router]);
 
-  const handleComplete = () => {
-    // TODO: 서버에 프로필 정보 저장
-    console.log({
-      profileImage,
-      selectedCareer,
-      selectedSchool,
-      documentFile
-    });
-    
-    // 메인 페이지로 이동
-    router.push('/');
+  const handleComplete = async () => {
+    // 필수 필드 검증 (닉네임, 연차, 학교만 체크)
+    if (!formData.nickname || !formData.schoolLevel) {
+      alert('닉네임과 학교를 선택해주세요.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // 프로필 사진을 로컬 스토리지에 저장
+      if (profileImage) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          if (e.target?.result) {
+            localStorage.setItem('userProfileImage', e.target.result as string);
+          }
+        };
+        reader.readAsDataURL(profileImage);
+      }
+
+      // 소셜 로그인 사용자를 위한 임시 비밀번호 생성
+      const tempPassword = `social_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      const signupData = {
+        ...formData,
+        password: tempPassword // 임시 비밀번호 사용
+      };
+
+      const response = await authService.signUp(signupData);
+      
+      if (response.success) {
+        alert('회원가입이 완료되었습니다.');
+        // 메인 페이지로 이동
+        router.push('/');
+      } else {
+        alert(response.error?.message || '회원가입에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      alert('회원가입 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,6 +97,27 @@ export default function Signup() {
     if (e.target.files && e.target.files[0]) {
       setDocumentFile(e.target.files[0]);
     }
+  };
+
+  const handleCareerSelect = (career: string) => {
+    setSelectedCareer(career);
+    setShowCareerDropdown(false);
+    
+    // careerYear를 숫자로 변환
+    const careerYear = parseInt(career.replace(/[^0-9]/g, ''));
+    setFormData(prev => ({
+      ...prev,
+      careerYear: careerYear || 1
+    }));
+  };
+
+  const handleSchoolSelect = (school: string) => {
+    setSelectedSchool(school);
+    setShowSchoolDropdown(false);
+    setFormData(prev => ({
+      ...prev,
+      schoolLevel: school
+    }));
   };
 
   if (status === 'loading') {
@@ -104,6 +175,17 @@ export default function Signup() {
           </div>
         </div>
 
+        {/* Nickname Input Only */}
+        <div className="mb-8">
+          <input
+            type="text"
+            placeholder="닉네임"
+            value={formData.nickname}
+            onChange={(e) => setFormData(prev => ({ ...prev, nickname: e.target.value }))}
+            className="w-full bg-gray-100 p-4 rounded-lg"
+          />
+        </div>
+
         {/* School Selection Section */}
         <div className="mb-8">
           <h2 className="text-lg font-bold mb-4">학교 선택</h2>
@@ -128,10 +210,7 @@ export default function Signup() {
                   {careerOptions.map((option) => (
                     <button
                       key={option}
-                      onClick={() => {
-                        setSelectedCareer(option);
-                        setShowCareerDropdown(false);
-                      }}
+                      onClick={() => handleCareerSelect(option)}
                       className="w-full px-4 py-3 text-left hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
                     >
                       {option}
@@ -161,10 +240,7 @@ export default function Signup() {
                 {schoolOptions.map((option) => (
                   <button
                     key={option}
-                    onClick={() => {
-                      setSelectedSchool(option);
-                      setShowSchoolDropdown(false);
-                    }}
+                    onClick={() => handleSchoolSelect(option)}
                     className="w-full px-4 py-3 text-left hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
                   >
                     {option}
@@ -207,9 +283,10 @@ export default function Signup() {
         <div className="mt-8">
           <button
             onClick={handleComplete}
-            className="w-full bg-gray-800 text-white py-4 rounded-lg font-medium hover:bg-gray-900 transition-colors"
+            disabled={loading}
+            className="w-full bg-gray-800 text-white py-4 rounded-lg font-medium hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            완료
+            {loading ? '처리 중...' : '완료'}
           </button>
         </div>
       </div>

@@ -15,15 +15,15 @@ interface ReactionButtonsProps {
 }
 
 const reactionConfig = [
-  { type: 'cheer' as const, label: '응원해요', icon: '👏' },
-  { type: 'empathy' as const, label: '공감해요', icon: '🤝' },
-  { type: 'helpful' as const, label: '유익해요', icon: '💡' },
-  { type: 'funny' as const, label: '웃겨요', icon: '😄' }
+  { type: 'cheer' as const, label: '응원해요', icon: '●' },
+  { type: 'empathy' as const, label: '공감해요', icon: '●' },
+  { type: 'helpful' as const, label: '유익해요', icon: '●' },
+  { type: 'funny' as const, label: '재밌어요', icon: '●' }
 ];
 
 export default function ReactionButtons({ reactions, userReactions, onReactionToggle }: ReactionButtonsProps) {
   return (
-    <div className="flex gap-3 mb-6 flex-wrap">
+    <div className="flex gap-2 mb-4">
       {reactionConfig.map(({ type, label, icon }) => {
         const isActive = userReactions.includes(type);
         const count = reactions[type];
@@ -32,15 +32,14 @@ export default function ReactionButtons({ reactions, userReactions, onReactionTo
           <button
             key={type}
             onClick={() => onReactionToggle(type)}
-            className={`px-4 py-2 rounded-full text-sm flex items-center gap-2 transition-colors ${
+            className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition-colors ${
               isActive
-                ? 'bg-blue-100 text-blue-700 border-2 border-blue-300'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-blue-100 text-blue-700'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
-            <span className="text-lg">{icon}</span>
+            <span className="text-gray-400 text-xs">{icon}</span>
             <span>{label}</span>
-            {count > 0 && <span className="font-medium">({count})</span>}
           </button>
         );
       })}

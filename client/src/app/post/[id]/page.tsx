@@ -42,10 +42,10 @@ export default function PostDetail() {
     };
   }, []);
   const { reactions, userReactions, toggleReaction } = useReactions({
-    cheer: 5,
-    empathy: 8,
-    helpful: 12,
-    funny: 3
+    cheer: 2,
+    empathy: 3,
+    helpful: 1,
+    funny: 0
   });
 
   if (loading || !post) {

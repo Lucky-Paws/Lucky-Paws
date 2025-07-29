@@ -51,13 +51,18 @@ const handler = NextAuth({
       clientId: process.env.KAKAO_CLIENT_ID!,
       clientSecret: process.env.KAKAO_CLIENT_SECRET!,
       profile(profile) {
-        // email이 없으면 대체 이메일 생성
         const kakaoId = profile.id;
-        const email = profile.kakao_account?.email || `kakao_${kakaoId}@noemail.local`;
+        
+        // 실제 이메일이 있는지 확인
+        if (!profile.kakao_account?.email) {
+          console.error('카카오에서 이메일을 받지 못했습니다. 카카오 개발자 콘솔에서 이메일 권한을 확인해주세요.');
+          throw new Error('카카오 이메일 권한이 필요합니다.');
+        }
+        
         return {
           id: kakaoId,
           name: profile.properties?.nickname,
-          email,
+          email: profile.kakao_account.email, // 실제 이메일만 사용
           image: profile.properties?.profile_image,
         };
       },

@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { ReactNode } from 'react';
+import { useSession } from 'next-auth/react';
 
 interface HeaderProps {
   title?: string;
@@ -31,6 +32,7 @@ export default function Header({
   onNotificationClick
 }: HeaderProps) {
   const router = useRouter();
+  const { data: session } = useSession();
 
   return (
     <header 
@@ -51,7 +53,38 @@ export default function Header({
                 </svg>
               </button>
             ) : showLogo ? (
-              <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
+              <div className="w-8 h-8 rounded-full overflow-hidden">
+                {(() => {
+                  // 로컬 스토리지에서 사용자가 업로드한 프로필 사진 확인
+                  const userProfileImage = typeof window !== 'undefined' ? localStorage.getItem('userProfileImage') : null;
+                  
+                  if (userProfileImage) {
+                    return (
+                      <img 
+                        src={userProfileImage} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                      />
+                    );
+                  } else if (session?.user?.image) {
+                    return (
+                      <img 
+                        src={session.user.image} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                      />
+                    );
+                  } else {
+                    return (
+                      <div className="w-full h-full bg-gray-300 flex items-center justify-center">
+                        <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                    );
+                  }
+                })()}
+              </div>
             ) : null}
             {title && <span className="text-base font-medium">{title}</span>}
           </>
