@@ -8,12 +8,14 @@ export default function Signup() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [selectedCareer, setSelectedCareer] = useState('교직 경력');
-  const [schoolName, setSchoolName] = useState('');
+  const [selectedSchool, setSelectedSchool] = useState('학교 선택');
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [showCareerDropdown, setShowCareerDropdown] = useState(false);
+  const [showSchoolDropdown, setShowSchoolDropdown] = useState(false);
 
   const careerOptions = ['1년차', '2년차', '3년차', '4년차', '5년차', '6-10년차', '11-20년차', '20년차 이상'];
+  const schoolOptions = ['초등학교', '중학교', '고등학교'];
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -27,7 +29,7 @@ export default function Signup() {
     console.log({
       profileImage,
       selectedCareer,
-      schoolName,
+      selectedSchool,
       documentFile
     });
     
@@ -140,20 +142,36 @@ export default function Signup() {
             </div>
           </div>
 
-          {/* School Name Input */}
+          {/* School Dropdown */}
           <div className="relative">
-            <input
-              type="text"
-              placeholder="학교"
-              value={schoolName}
-              onChange={(e) => setSchoolName(e.target.value)}
-              className="w-full bg-gray-100 p-4 rounded-lg pr-12"
-            />
-            <button className="absolute right-4 top-1/2 transform -translate-y-1/2">
+            <button
+              onClick={() => setShowSchoolDropdown(!showSchoolDropdown)}
+              className="w-full bg-gray-100 p-4 rounded-lg flex items-center justify-between text-left"
+            >
+              <span className={selectedSchool === '학교 선택' ? 'text-gray-500' : 'text-black'}>
+                {selectedSchool}
+              </span>
               <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
+            
+            {showSchoolDropdown && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                {schoolOptions.map((option) => (
+                  <button
+                    key={option}
+                    onClick={() => {
+                      setSelectedSchool(option);
+                      setShowSchoolDropdown(false);
+                    }}
+                    className="w-full px-4 py-3 text-left hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

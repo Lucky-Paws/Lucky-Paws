@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Comment, User } from '@/types';
 
 interface CommentSectionProps {
   comments: Comment[];
-  currentUser?: User;
+  currentUser?: any; // session.user 타입과 호환되도록 any로 변경
   onAddComment: (content: string, parentId?: string) => void;
   onLikeComment: (commentId: string) => void;
   onDeleteComment?: (commentId: string) => void;
@@ -101,7 +101,7 @@ export default function CommentSection({
 
 interface CommentItemProps {
   comment: Comment;
-  currentUser?: User;
+  currentUser?: any; // session.user 타입과 호환되도록 any로 변경
   onLike: (commentId: string) => void;
   isLiked: boolean;
   onReply: (commentId: string) => void;
@@ -126,7 +126,26 @@ function CommentItem({
   onSubmitReply,
   onCancelReply
 }: CommentItemProps) {
-  const isAuthor = currentUser?.id === comment.author.id;
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  
+  // 현재 사용자가 댓글 작성자인지 확인
+  // 새로 작성한 댓글은 'current-user@example.com'으로 설정됨
+  const isAuthor = comment.author.email === 'current-user@example.com';
+
+  // 메뉴 외부 클릭 시 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className="border-b border-gray-100 pb-4">
@@ -144,12 +163,28 @@ function CommentItem({
                   <path d="M11.8031 9.12076C12.0898 8.47221 12.249 7.7547 12.249 7C12.249 4.10051 9.89872 1.75 6.9995 1.75C4.10028 1.75 1.75 4.10051 1.75 7C1.75 9.8995 4.10028 12.25 6.9995 12.25C7.93293 12.25 8.80946 12.0064 9.56897 11.5792L12.25 12.2495L11.8031 9.12076Z" stroke="#565656" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </button>
-              {(isAuthor || onDelete) && (
-                <button onClick={() => onDelete?.(comment.id)} className="p-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-                  </svg>
-                </button>
+              {!isAuthor && (
+                <div className="relative" ref={menuRef}>
+                  <button 
+                    className="p-1"
+                    onClick={() => setShowMenu(!showMenu)}
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                    </svg>
+                  </button>
+                  
+                  {showMenu && (
+                    <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg min-w-[100px] z-60">
+                      <button className="w-full px-4 py-3 text-left hover:bg-gray-50 first:rounded-t-lg text-sm">
+                        채팅
+                      </button>
+                      <button className="w-full px-4 py-3 text-left hover:bg-gray-50 last:rounded-b-lg text-sm">
+                        신고
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>

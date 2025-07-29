@@ -123,6 +123,7 @@ export type TabOption = '미답변' | '답변 완료';
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
+  message?: string;
   error?: {
     code: string;
     message: string;

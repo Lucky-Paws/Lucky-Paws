@@ -181,6 +181,7 @@ export default function PostDetail() {
         {/* Comments */}
         <CommentSection
           comments={comments}
+          currentUser={session?.user}
           onAddComment={addComment}
           onLikeComment={likeComment}
           onDeleteComment={deleteComment}

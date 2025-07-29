@@ -11,6 +11,7 @@ const generateMockComment = (id: string, postId: string, parentId?: string): Com
   author: {
     id: `user-${Math.floor(Math.random() * 10)}`,
     name: 'OOO 멘토님',
+    email: `user${Math.floor(Math.random() * 10)}@example.com`,
     type: 'mentor',
     teacherType: '초등학교',
     yearsOfExperience: 20
@@ -35,6 +36,7 @@ export function useComments(postId: string) {
       author: {
         id: 'current-user',
         name: '나',
+        email: 'current-user@example.com',
         type: 'mentee',
         teacherType: '초등학교',
         yearsOfExperience: 2
