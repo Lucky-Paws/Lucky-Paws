@@ -6,10 +6,21 @@ export const connectDB = async (): Promise<void> => {
     // MongoDB Atlas 연결 문자열
     const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://hisounni:bLaiyEKPrJcwFOCl@cluster0.ckwnzyq.mongodb.net/lucky-paws?retryWrites=true&w=majority';
     
+    logger.info('Connecting to MongoDB Atlas...');
+    logger.info('Connection string:', mongoUri.replace(/\/\/.*@/, '//***:***@')); // 비밀번호 숨김
+    
     await mongoose.connect(mongoUri);
     logger.info('MongoDB Atlas connected successfully');
-    logger.info('Database name:', mongoose.connection.db.databaseName);
-    logger.info('Connection string:', mongoUri.replace(/\/\/.*@/, '//***:***@')); // 비밀번호 숨김
+    
+    // 연결 후 데이터베이스 정보 확인
+    const dbName = mongoose.connection.name;
+    logger.info('Database name:', dbName);
+    
+    // 컬렉션 목록 확인
+    if (mongoose.connection.db) {
+      const collections = await mongoose.connection.db.listCollections().toArray();
+      logger.info('Available collections:', collections.map(col => col.name));
+    }
     
     // 불필요한 인덱스 제거 시도
     try {

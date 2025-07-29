@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Header, { HEADER_HEIGHT } from '@/components/common/Header';
+import { apiClient } from '@/lib/api/client';
+import { API_ENDPOINTS } from '@/lib/api/config';
 
 export default function WritePage() {
   const router = useRouter();
@@ -25,22 +27,35 @@ export default function WritePage() {
     setSelectedImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!title.trim() || !content.trim()) {
       alert('제목과 내용을 모두 입력해주세요.');
       return;
     }
 
-    // TODO: API call to create post
-    console.log({
-      title,
-      content,
-      selectedCategory,
-      selectedImages
-    });
+    if (!selectedCategory) {
+      alert('카테고리를 선택해주세요.');
+      return;
+    }
 
-    // Navigate back to previous page
-    router.back();
+    try {
+      const postData = {
+        title,
+        content,
+        category: selectedCategory,
+        teacherLevel: selectedCategory.includes('학교') ? selectedCategory : '초등학교',
+      };
+
+      const response = await apiClient.post(API_ENDPOINTS.POSTS.CREATE, postData);
+      
+      if (response) {
+        alert('게시글이 성공적으로 작성되었습니다.');
+        router.push('/community');
+      }
+    } catch (error) {
+      console.error('Post creation error:', error);
+      alert('게시글 작성 중 오류가 발생했습니다.');
+    }
   };
 
   return (
