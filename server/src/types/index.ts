@@ -1,82 +1,82 @@
 import { Request } from 'express';
-import { Document } from 'mongoose';
 
-export interface IUser extends Document {
+export interface IUser {
+  id: string;
   name: string;
   email: string;
   password: string;
   avatar?: string;
   type: 'mentor' | 'mentee';
-  teacherType?: 'elementary' | 'middle' | 'high';
-  yearsOfExperience?: number;
+  teacher_type?: 'elementary' | 'middle' | 'high';
+  years_of_experience?: number;
   bio?: string;
-  isVerified: boolean;
-  refreshToken?: string;
-  createdAt: Date;
-  updatedAt: Date;
-  comparePassword(candidatePassword: string): Promise<boolean>;
+  is_verified: boolean;
+  refresh_token?: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
-export interface IPost extends Document {
+export interface IPost {
+  id: string;
   title: string;
   content: string;
-  author: IUser['_id'];
-  viewCount: number;
-  likeCount: number;
-  commentCount: number;
+  author_id: string;
+  view_count: number;
+  like_count: number;
+  comment_count: number;
   tags: string[];
   category: '학생지도' | '수업운영' | '평가/과제' | '학부모상담' | '학부모' | '동료관계' | '기타';
-  teacherLevel: '초등학교' | '중학교' | '고등학교';
-  isAnswered: boolean;
-  isHot: boolean;
-  isPinned: boolean;
+  teacher_level: '초등학교' | '중학교' | '고등학교';
+  is_answered: boolean;
+  is_hot: boolean;
+  is_pinned: boolean;
   images: string[];
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 }
 
-export interface IComment extends Document {
-  postId: IPost['_id'];
+export interface IComment {
+  id: string;
+  post_id: string;
   content: string;
-  author: IUser['_id'];
-  likeCount: number;
-  parentId?: IComment['_id'];
-  isDeleted: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  author_id: string;
+  like_count: number;
+  parent_id?: string;
+  is_deleted: boolean;
+  created_at: Date;
+  updated_at: Date;
 }
 
-export interface IReaction extends Document {
-  postId: IPost['_id'];
-  userId: IUser['_id'];
+export interface IReaction {
+  id: string;
+  post_id: string;
+  user_id: string;
   type: 'cheer' | 'empathy' | 'helpful' | 'funny';
-  createdAt: Date;
+  created_at: Date;
 }
 
-export interface ILike extends Document {
-  targetId: string;
-  targetType: 'post' | 'comment';
-  userId: IUser['_id'];
-  createdAt: Date;
+export interface ILike {
+  id: string;
+  target_id: string;
+  target_type: 'post' | 'comment';
+  user_id: string;
+  created_at: Date;
 }
 
-export interface IChatRoom extends Document {
-  participants: IUser['_id'][];
-  lastMessage?: IChatMessage['_id'];
-  createdAt: Date;
-  updatedAt: Date;
+export interface IChatRoom {
+  id: string;
+  last_message_id?: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
-export interface IChatMessage extends Document {
-  roomId: IChatRoom['_id'];
-  senderId: IUser['_id'];
+export interface IChatMessage {
+  id: string;
+  room_id: string;
+  sender_id: string;
   content: string;
-  readBy: Array<{
-    userId: IUser['_id'];
-    readAt: Date;
-  }>;
-  isDeleted: boolean;
-  createdAt: Date;
+  is_deleted: boolean;
+  created_at: Date;
 }
 
 export interface AuthRequest extends Request {
