@@ -80,14 +80,16 @@ export const postService = {
     title: string;
     content: string;
     category: string;
-    tags: string[];
+    teacherLevel?: string;
+    tags?: string[];
     authorId: string;
   }): Promise<IPost> {
     const post = await Post.create({
       title: data.title,
       content: data.content,
       category: data.category,
-      tags: data.tags,
+      teacherLevel: data.teacherLevel || '초등학교',
+      tags: data.tags || [],
       author: data.authorId,
     });
 

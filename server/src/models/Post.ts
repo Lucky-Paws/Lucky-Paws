@@ -43,6 +43,11 @@ const postSchema = new Schema<IPost>(
       enum: ['학생지도', '수업운영', '평가/과제', '학부모상담', '학부모', '동료관계', '기타'],
       required: true,
     },
+    teacherLevel: {
+      type: String,
+      enum: ['초등학교', '중학교', '고등학교'],
+      default: '초등학교',
+    },
     isAnswered: {
       type: Boolean,
       default: false,

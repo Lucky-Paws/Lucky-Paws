@@ -26,6 +26,7 @@ export interface IPost extends Document {
   commentCount: number;
   tags: string[];
   category: '학생지도' | '수업운영' | '평가/과제' | '학부모상담' | '학부모' | '동료관계' | '기타';
+  teacherLevel: '초등학교' | '중학교' | '고등학교';
   isAnswered: boolean;
   isHot: boolean;
   isPinned: boolean;
