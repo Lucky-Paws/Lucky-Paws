@@ -1,11 +1,17 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { authService, SignupDto } from '@/services/authService';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { authService, SignupDto, CompleteSocialSignupDto } from '@/services/authService';
+
+type SignupType = 'normal' | 'social';
 
 export default function Signup() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [signupType, setSignupType] = useState<SignupType>('normal');
+  const [socialData, setSocialData] = useState<{email: string; name: string} | null>(null);
+  
   const [formData, setFormData] = useState<SignupDto>({
     email: '',
     password: '',
@@ -14,6 +20,7 @@ export default function Signup() {
     teacherType: undefined,
     yearsOfExperience: undefined
   });
+
   const [selectedCareer, setSelectedCareer] = useState('교직 경력');
   const [selectedSchool, setSelectedSchool] = useState('학교 선택');
   const [profileImage, setProfileImage] = useState<File | null>(null);
@@ -31,12 +38,31 @@ export default function Signup() {
     '고등': 'high'
   };
 
+  useEffect(() => {
+    // URL 파라미터에서 소셜 로그인 정보 확인
+    const type = searchParams.get('type');
+    const email = searchParams.get('email');
+    const name = searchParams.get('name');
+    
+    if (type === 'social' && email && name) {
+      setSignupType('social');
+      setSocialData({ email, name });
+      setFormData(prev => ({ ...prev, email, name }));
+    }
+  }, [searchParams]);
 
   const handleComplete = async () => {
     // 필수 필드 검증
-    if (!formData.email || !formData.password || !formData.name || !formData.teacherType) {
-      alert('모든 필수 항목을 입력해주세요.');
-      return;
+    if (signupType === 'normal') {
+      if (!formData.email || !formData.password || !formData.name || !formData.teacherType) {
+        alert('모든 필수 항목을 입력해주세요.');
+        return;
+      }
+    } else {
+      if (!formData.name || !formData.teacherType) {
+        alert('이름과 학교를 선택해주세요.');
+        return;
+      }
     }
 
     setLoading(true);
@@ -53,12 +79,30 @@ export default function Signup() {
         reader.readAsDataURL(profileImage);
       }
 
-      const response = await authService.signup(formData);
-      
-      if (response) {
-        alert('회원가입이 완료되었습니다.');
-        // 메인 페이지로 이동
-        router.push('/');
+      if (signupType === 'social' && socialData) {
+        // 소셜 회원가입 완료
+        const socialSignupData: CompleteSocialSignupDto = {
+          email: socialData.email,
+          name: formData.name,
+          type: formData.type,
+          teacherType: formData.teacherType,
+          yearsOfExperience: formData.yearsOfExperience,
+        };
+        
+        const response = await authService.completeSocialSignup(socialSignupData);
+        
+        if (response) {
+          alert('회원가입이 완료되었습니다.');
+          router.push('/');
+        }
+      } else {
+        // 일반 회원가입
+        const response = await authService.signup(formData);
+        
+        if (response) {
+          alert('회원가입이 완료되었습니다.');
+          router.push('/');
+        }
       }
     } catch (error: any) {
       console.error('Signup error:', error);
@@ -101,7 +145,6 @@ export default function Signup() {
       teacherType: teacherTypeMap[school]
     }));
   };
-
 
   return (
     <div className="bg-white min-h-screen">
@@ -146,24 +189,28 @@ export default function Signup() {
           </div>
         </div>
 
-        {/* Input Fields */}
+        {/* Input Fields - 일반 회원가입일 때만 이메일/비밀번호 표시 */}
         <div className="space-y-4 mb-8">
-          <input
-            type="email"
-            placeholder="이메일"
-            value={formData.email}
-            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-            className="w-full bg-gray-100 p-4 rounded-lg"
-            required
-          />
-          <input
-            type="password"
-            placeholder="비밀번호"
-            value={formData.password}
-            onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-            className="w-full bg-gray-100 p-4 rounded-lg"
-            required
-          />
+          {signupType === 'normal' && (
+            <>
+              <input
+                type="email"
+                placeholder="이메일"
+                value={formData.email}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                className="w-full bg-gray-100 p-4 rounded-lg"
+                required
+              />
+              <input
+                type="password"
+                placeholder="비밀번호"
+                value={formData.password}
+                onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                className="w-full bg-gray-100 p-4 rounded-lg"
+                required
+              />
+            </>
+          )}
           <input
             type="text"
             placeholder="이름"
@@ -280,4 +327,4 @@ export default function Signup() {
       </div>
     </div>
   );
-} 
+}

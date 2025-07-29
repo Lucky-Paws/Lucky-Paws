@@ -76,38 +76,38 @@ const handler = NextAuth({
     }),
   ],
   pages: {
-    signIn: "/auth/signin",
+    signIn: "/login",
   },
   callbacks: {
     async jwt({ token, user, account }) {
       // 로그인 시 JWT 토큰에 추가 정보 포함
       if (account && user) {
-        // 소셜 로그인인 경우 백엔드 API 호출
-        if ((account.provider === 'kakao' || account.provider === 'google') && account.access_token) {
-          try {
-            let response;
-            if (account.provider === 'kakao') {
-              response = await authService.kakaoLogin(account.access_token);
-            } else {
-              response = await authService.googleLogin(account.access_token);
-            }
-            
-            if (response.success && response.data) {
-              // 백엔드에서 받은 사용자 정보로 토큰 업데이트
-              return {
-                ...token,
-                accessToken: response.data.token,
-                provider: account.provider,
-                userId: response.data.id,
-                nickname: response.data.nickname,
-                careerYear: response.data.careerYear,
-                schoolLevel: response.data.schoolLevel,
-              };
-            }
-          } catch (error) {
-            console.error(`${account.provider} 로그인 API 호출 실패:`, error);
-          }
-        }
+        // 소셜 로그인인 경우 백엔드 API 호출 (현재 미구현)
+        // if ((account.provider === 'kakao' || account.provider === 'google') && account.access_token) {
+        //   try {
+        //     let response;
+        //     if (account.provider === 'kakao') {
+        //       response = await authService.kakaoLogin(account.access_token);
+        //     } else {
+        //       response = await authService.googleLogin(account.access_token);
+        //     }
+        //     
+        //     if (response.success && response.data) {
+        //       // 백엔드에서 받은 사용자 정보로 토큰 업데이트
+        //       return {
+        //         ...token,
+        //         accessToken: response.data.token,
+        //         provider: account.provider,
+        //         userId: response.data.id,
+        //         nickname: response.data.nickname,
+        //         careerYear: response.data.careerYear,
+        //         schoolLevel: response.data.schoolLevel,
+        //       };
+        //     }
+        //   } catch (error) {
+        //     console.error(`${account.provider} 로그인 API 호출 실패:`, error);
+        //   }
+        // }
         
         return {
           ...token,

@@ -14,6 +14,14 @@ interface AuthTokens {
   refreshToken: string;
 }
 
+interface SocialLoginData {
+  provider: 'google' | 'kakao';
+  accessToken: string;
+  email: string;
+  name: string;
+  profileImage?: string;
+}
+
 export const authService = {
   generateTokens(user: IUser): AuthTokens {
     const payload: TokenPayload = {
@@ -76,6 +84,60 @@ export const authService = {
 
     const tokens = this.generateTokens(user);
 
+    user.refreshToken = tokens.refreshToken;
+    await user.save();
+
+    return { user, tokens };
+  },
+
+  async socialLogin(data: SocialLoginData): Promise<{ user: IUser; tokens: AuthTokens; isNewUser: boolean }> {
+    // 기존 사용자 확인
+    let user = await User.findOne({ email: data.email });
+    let isNewUser = false;
+
+    if (!user) {
+      // 신규 사용자 - 임시 계정 생성
+      isNewUser = true;
+      user = await User.create({
+        email: data.email,
+        name: data.name,
+        password: `${data.provider}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // 임시 비밀번호
+        avatar: data.profileImage,
+        type: 'mentee', // 기본값, 나중에 변경 가능
+        isVerified: false, // 추가 정보 입력 전까지는 미인증
+      });
+    }
+
+    const tokens = this.generateTokens(user);
+    user.refreshToken = tokens.refreshToken;
+    await user.save();
+
+    return { user, tokens, isNewUser };
+  },
+
+  async completeSocialSignup(data: {
+    email: string;
+    name: string;
+    type: 'mentor' | 'mentee';
+    teacherType?: string;
+    yearsOfExperience?: number;
+  }): Promise<{ user: IUser; tokens: AuthTokens }> {
+    const user = await User.findOne({ email: data.email });
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    // 사용자 정보 업데이트
+    user.name = data.name;
+    user.type = data.type;
+    if (data.type === 'mentor') {
+      user.teacherType = data.teacherType as any;
+      user.yearsOfExperience = data.yearsOfExperience;
+    }
+    user.isVerified = true;
+    await user.save();
+
+    const tokens = this.generateTokens(user);
     user.refreshToken = tokens.refreshToken;
     await user.save();
 

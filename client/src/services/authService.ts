@@ -16,12 +16,32 @@ export interface LoginDto {
   password: string;
 }
 
+export interface SocialLoginDto {
+  provider: 'google' | 'kakao';
+  accessToken: string;
+  email: string;
+  name: string;
+  profileImage?: string;
+}
+
+export interface CompleteSocialSignupDto {
+  email: string;
+  name: string;
+  type: 'mentor' | 'mentee';
+  teacherType?: 'elementary' | 'middle' | 'high';
+  yearsOfExperience?: number;
+}
+
 export interface AuthResponse {
   user: User;
   tokens: {
     accessToken: string;
     refreshToken: string;
   };
+}
+
+export interface SocialAuthResponse extends AuthResponse {
+  isNewUser: boolean;
 }
 
 export const authService = {
@@ -39,6 +59,30 @@ export const authService = {
 
   async login(data: LoginDto): Promise<AuthResponse> {
     const response = await apiClient.post<AuthResponse>(API_ENDPOINTS.AUTH.LOGIN, data);
+    
+    // Store tokens
+    if (response.tokens) {
+      apiClient.setAccessToken(response.tokens.accessToken);
+      localStorage.setItem('refreshToken', response.tokens.refreshToken);
+    }
+    
+    return response;
+  },
+
+  async socialLogin(data: SocialLoginDto): Promise<SocialAuthResponse> {
+    const response = await apiClient.post<SocialAuthResponse>('/api/auth/social-login', data);
+    
+    // Store tokens
+    if (response.tokens) {
+      apiClient.setAccessToken(response.tokens.accessToken);
+      localStorage.setItem('refreshToken', response.tokens.refreshToken);
+    }
+    
+    return response;
+  },
+
+  async completeSocialSignup(data: CompleteSocialSignupDto): Promise<AuthResponse> {
+    const response = await apiClient.post<AuthResponse>('/api/auth/complete-social-signup', data);
     
     // Store tokens
     if (response.tokens) {
@@ -82,4 +126,3 @@ export const authService = {
     return response;
   },
 };
- 

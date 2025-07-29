@@ -1,26 +1,51 @@
 'use client';
 
-import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { authService } from '@/services/authService';
 
 export default function Landing() {
-  const { data: session, status } = useSession();
   const router = useRouter();
 
-  useEffect(() => {
-    if (session) {
-      router.push('/');
-    }
-  }, [session, router]);
+  const handleGoogleLogin = async () => {
+    // Google OAuth 구현 필요
+    alert('Google 로그인은 OAuth 설정이 필요합니다.');
+  };
 
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">로딩중...</div>
-      </div>
-    );
-  }
+  const handleKakaoLogin = async () => {
+    // Kakao OAuth 구현 필요
+    alert('Kakao 로그인은 OAuth 설정이 필요합니다.');
+  };
+
+  const handleNormalLogin = () => {
+    router.push('/login');
+  };
+
+  // 테스트용 소셜 로그인 시뮬레이션
+  const handleTestSocialLogin = async (provider: 'google' | 'kakao') => {
+    try {
+      // 실제로는 OAuth로 받은 데이터를 사용
+      const mockSocialData = {
+        provider,
+        accessToken: 'mock-access-token',
+        email: `test@${provider}.com`,
+        name: `${provider} 사용자`,
+        profileImage: undefined,
+      };
+
+      const response = await authService.socialLogin(mockSocialData);
+      
+      if (response.isNewUser) {
+        // 신규 사용자 - 추가 정보 입력 필요
+        router.push(`/signup?type=social&email=${mockSocialData.email}&name=${mockSocialData.name}`);
+      } else {
+        // 기존 사용자 - 메인 페이지로
+        router.push('/');
+      }
+    } catch (error) {
+      console.error('Social login error:', error);
+      alert('소셜 로그인 중 오류가 발생했습니다.');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
@@ -33,7 +58,7 @@ export default function Landing() {
       <div className="w-full max-w-xs space-y-3">
         {/* 카카오 로그인 */}
         <button
-          onClick={() => signIn('kakao', { callbackUrl: '/signup' })}
+          onClick={() => handleTestSocialLogin('kakao')}
           className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-medium py-4 px-6 rounded-lg flex items-center justify-center gap-3 transition-colors"
         >
           <div className="w-5 h-5 bg-black rounded-full flex items-center justify-center">
@@ -44,7 +69,7 @@ export default function Landing() {
 
         {/* 구글 로그인 */}
         <button
-          onClick={() => signIn('google', { callbackUrl: '/signup' })}
+          onClick={() => handleTestSocialLogin('google')}
           className="w-full bg-white hover:bg-gray-50 text-gray-700 font-medium py-4 px-6 rounded-lg border border-gray-300 flex items-center justify-center gap-3 transition-colors"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -70,7 +95,7 @@ export default function Landing() {
 
         {/* 전통적인 로그인 */}
         <button
-          onClick={() => router.push('/login')}
+          onClick={handleNormalLogin}
           className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium py-4 px-6 rounded-lg flex items-center justify-center gap-3 transition-colors"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -36,6 +36,53 @@ export const authController = {
     }
   },
 
+  async socialLogin(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { provider, accessToken, email, name, profileImage } = req.body;
+      const { user, tokens, isNewUser } = await authService.socialLogin({
+        provider,
+        accessToken,
+        email,
+        name,
+        profileImage,
+      });
+
+      res.json({
+        success: true,
+        data: {
+          user,
+          tokens,
+          isNewUser, // 신규 사용자인 경우 회원가입 페이지로 이동 필요
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async completeSocialSignup(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { email, name, type, teacherType, yearsOfExperience } = req.body;
+      const { user, tokens } = await authService.completeSocialSignup({
+        email,
+        name,
+        type,
+        teacherType,
+        yearsOfExperience,
+      });
+
+      res.json({
+        success: true,
+        data: {
+          user,
+          tokens,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
   async refreshToken(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { refreshToken } = req.body;
