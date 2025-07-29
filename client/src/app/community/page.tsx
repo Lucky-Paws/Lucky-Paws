@@ -72,14 +72,19 @@ export default function Community() {
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
       <Header 
+        title="고민상담"
         showLogo={false}
+        showBackButton={false}
         leftContent={
-          <FilterDropdown
-            label="학교급"
-            value={selectedSchool}
-            options={['초등학교', '중학교', '고등학교']}
-            onChange={(value) => setSelectedSchool(value as TeacherLevel)}
-          />
+          <div className="flex items-center gap-3">
+            <h1 className="text-base font-bold">고민상담</h1>
+            <FilterDropdown
+              label=""
+              value={selectedSchool}
+              options={['초등학교', '중학교', '고등학교']}
+              onChange={(value) => setSelectedSchool(value as TeacherLevel)}
+            />
+          </div>
         }
       />
 

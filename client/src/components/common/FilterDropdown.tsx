@@ -30,11 +30,11 @@ export default function FilterDropdown({ label, value, options, onChange, classN
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
       <button 
-        className="flex items-center gap-2"
+        className="flex items-center gap-1"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span className="text-lg font-medium">{value}</span>
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <span className="text-sm text-gray-600">{value}</span>
+        <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
