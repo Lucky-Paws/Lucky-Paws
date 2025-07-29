@@ -1,6 +1,8 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
+import { useSession } from 'next-auth/react';
 import Header from '@/components/common/Header';
 import CommentSection from '@/components/post/CommentSection';
 import ReactionButtons from '@/components/post/ReactionButtons';
@@ -18,6 +20,27 @@ export default function PostDetail() {
   const { post, loading } = usePost(postId);
   const { comments, addComment, likeComment, deleteComment } = useComments(postId);
   const { likeCount, isLiked, toggleLike } = useLikes(post?.likeCount || 0);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const { data: session } = useSession();
+  
+  // 현재 사용자가 게시글 작성자인지 확인
+  const isAuthor = session?.user?.email === post?.author?.email;
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // 메뉴 외부 클릭 시 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
   const { reactions, userReactions, toggleReaction } = useReactions({
     cheer: 5,
     empathy: 8,
@@ -54,11 +77,43 @@ export default function PostDetail() {
               <h2 className="font-medium text-base">{post.author.name}</h2>
             </div>
           </div>
-          <button className="p-1">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-            </svg>
-          </button>
+          <div className="relative" ref={menuRef}>
+            <button 
+              className="p-1"
+              onClick={() => setShowMenu(!showMenu)}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+              </svg>
+            </button>
+            
+            {showMenu && (
+              <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg min-w-[120px] z-60">
+                {isAuthor ? (
+                  <>
+                    <button className="w-full px-4 py-3 text-left hover:bg-gray-50 first:rounded-t-lg text-sm">
+                      수정
+                    </button>
+                    <button className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm">
+                      삭제
+                    </button>
+                    <button className="w-full px-4 py-3 text-left hover:bg-gray-50 last:rounded-b-lg text-sm">
+                      공유
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button className="w-full px-4 py-3 text-left hover:bg-gray-50 first:rounded-t-lg text-sm">
+                      신고
+                    </button>
+                    <button className="w-full px-4 py-3 text-left hover:bg-gray-50 last:rounded-b-lg text-sm">
+                      공유
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Post Title */}
@@ -79,7 +134,7 @@ export default function PostDetail() {
         {/* Tags */}
         <div className="flex gap-2 mb-6">
           {post.tags.map((tag) => (
-            <span key={tag} className="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
+            <span key={tag} className="bg-gray-100 text-gray-600 text-sm px-2 py-1 rounded">
               {tag}
             </span>
           ))}
@@ -108,9 +163,18 @@ export default function PostDetail() {
                 </svg>
               )}
             </button>
-            <span className="flex items-center gap-1">
-              17 <span>🔖</span>
-            </span>
+            <button onClick={() => setIsBookmarked(!isBookmarked)} className="flex items-center gap-1">
+              17 
+              {isBookmarked ? (
+                <svg width="10" height="12" viewBox="0 0 10 12" fill="none">
+                  <path d="M1 11.5V0.5H9V11.5L5 8.91177L1 11.5Z" fill="#565656" stroke="#565656" strokeLinejoin="round"/>
+                </svg>
+              ) : (
+                <svg width="10" height="12" viewBox="0 0 10 12" fill="none">
+                  <path d="M1 11.5V0.5H9V11.5L5 8.91177L1 11.5Z" stroke="#565656" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </button>
           </div>
         </div>
 
