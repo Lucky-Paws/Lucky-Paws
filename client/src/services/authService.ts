@@ -20,13 +20,29 @@ export interface SignupResponseDto {
   schoolLevel: string;
 }
 
+export interface KakaoLoginRequestDto {
+  accessToken: string;
+  provider: string;
+}
+
+export interface LoginResponseDto {
+  id: number;
+  email: string;
+  name: string;
+  nickname: string;
+  careerYear: number;
+  schoolLevel: string;
+  token: string;
+  expiresIn: number;
+}
+
 class AuthService {
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${API_BASE_URL}${endpoint}`;
-    
+
     const defaultHeaders = {
       'Content-Type': 'application/json',
     };
@@ -71,6 +87,28 @@ class AuthService {
         }
       };
     }
+  }
+
+  // 카카오 로그인
+  async kakaoLogin(accessToken: string): Promise<ApiResponse<LoginResponseDto>> {
+    return this.request<LoginResponseDto>('/auth/kakao/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        accessToken,
+        provider: 'kakao'
+      }),
+    });
+  }
+
+  // 구글 로그인
+  async googleLogin(accessToken: string): Promise<ApiResponse<LoginResponseDto>> {
+    return this.request<LoginResponseDto>('/auth/google/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        accessToken,
+        provider: 'google'
+      }),
+    });
   }
 
   // 회원가입
