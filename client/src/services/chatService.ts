@@ -1,31 +1,6 @@
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/config';
-
-export interface ChatRoom {
-  id: string;
-  participants: {
-    id: string;
-    name: string;
-    avatar?: string;
-    type: 'mentor' | 'mentee';
-  }[];
-  lastMessage?: {
-    content: string;
-    sentAt: Date;
-  };
-  unreadCount: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface ChatMessage {
-  id: string;
-  roomId: string;
-  senderId: string;
-  content: string;
-  sentAt: Date;
-  readAt?: Date;
-}
+import { ChatRoom, ChatMessage } from '@/types';
 
 export interface SendMessageDto {
   content: string;
@@ -35,6 +10,11 @@ export const chatService = {
   // 채팅방 목록 조회
   async getChatRooms(): Promise<ChatRoom[]> {
     return apiClient.get<ChatRoom[]>(API_ENDPOINTS.CHAT.ROOMS);
+  },
+
+  // 채팅방 생성
+  async createRoom(participantId: string): Promise<ChatRoom> {
+    return apiClient.post<ChatRoom>(API_ENDPOINTS.CHAT.ROOMS, { participantId });
   },
 
   // 채팅방 상세 조회

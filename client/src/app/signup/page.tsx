@@ -1,20 +1,18 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { useState, useEffect } from 'react';
-import { authService, SignupRequestDto } from '@/services/authService';
+import { useState } from 'react';
+import { authService, SignupDto } from '@/services/authService';
 
 export default function Signup() {
-  const { data: session, status } = useSession();
   const router = useRouter();
-  const [formData, setFormData] = useState<SignupRequestDto>({
+  const [formData, setFormData] = useState<SignupDto>({
     email: '',
-    password: '', // 임시 비밀번호로 자동 생성됨
+    password: '',
     name: '',
-    nickname: '',
-    careerYear: 1,
-    schoolLevel: ''
+    type: 'mentor',
+    teacherType: undefined,
+    yearsOfExperience: undefined
   });
   const [selectedCareer, setSelectedCareer] = useState('교직 경력');
   const [selectedSchool, setSelectedSchool] = useState('학교 선택');
@@ -26,25 +24,18 @@ export default function Signup() {
 
   const careerOptions = ['1년차', '2년차', '3년차', '4년차', '5년차', '6-10년차', '11-20년차', '20년차 이상'];
   const schoolOptions = ['초등', '중등', '고등'];
+  
+  const teacherTypeMap: Record<string, 'elementary' | 'middle' | 'high'> = {
+    '초등': 'elementary',
+    '중등': 'middle',
+    '고등': 'high'
+  };
 
-  useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) {
-      router.push('/landing');
-    } else {
-      // 소셜 로그인 정보를 기본값으로 설정
-      setFormData(prev => ({
-        ...prev,
-        email: session.user?.email || '',
-        name: session.user?.name || ''
-      }));
-    }
-  }, [session, status, router]);
 
   const handleComplete = async () => {
-    // 필수 필드 검증 (닉네임, 연차, 학교만 체크)
-    if (!formData.nickname || !formData.schoolLevel) {
-      alert('닉네임과 학교를 선택해주세요.');
+    // 필수 필드 검증
+    if (!formData.email || !formData.password || !formData.name || !formData.teacherType) {
+      alert('모든 필수 항목을 입력해주세요.');
       return;
     }
 
@@ -62,26 +53,16 @@ export default function Signup() {
         reader.readAsDataURL(profileImage);
       }
 
-      // 소셜 로그인 사용자를 위한 임시 비밀번호 생성
-      const tempPassword = `social_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const response = await authService.signup(formData);
       
-      const signupData = {
-        ...formData,
-        password: tempPassword // 임시 비밀번호 사용
-      };
-
-      const response = await authService.signUp(signupData);
-      
-      if (response.success) {
+      if (response) {
         alert('회원가입이 완료되었습니다.');
         // 메인 페이지로 이동
         router.push('/');
-      } else {
-        alert(response.error?.message || '회원가입에 실패했습니다.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Signup error:', error);
-      alert('회원가입 중 오류가 발생했습니다.');
+      alert(error.message || '회원가입 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
@@ -103,11 +84,12 @@ export default function Signup() {
     setSelectedCareer(career);
     setShowCareerDropdown(false);
     
-    // careerYear를 숫자로 변환
-    const careerYear = parseInt(career.replace(/[^0-9]/g, ''));
+    // yearsOfExperience를 숫자로 변환
+    const yearMatch = career.match(/\d+/);
+    const years = yearMatch ? parseInt(yearMatch[0]) : 1;
     setFormData(prev => ({
       ...prev,
-      careerYear: careerYear || 1
+      yearsOfExperience: years
     }));
   };
 
@@ -116,21 +98,10 @@ export default function Signup() {
     setShowSchoolDropdown(false);
     setFormData(prev => ({
       ...prev,
-      schoolLevel: school
+      teacherType: teacherTypeMap[school]
     }));
   };
 
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">로딩중...</div>
-      </div>
-    );
-  }
-
-  if (!session) {
-    return null;
-  }
 
   return (
     <div className="bg-white min-h-screen">
@@ -175,14 +146,31 @@ export default function Signup() {
           </div>
         </div>
 
-        {/* Nickname Input Only */}
-        <div className="mb-8">
+        {/* Input Fields */}
+        <div className="space-y-4 mb-8">
+          <input
+            type="email"
+            placeholder="이메일"
+            value={formData.email}
+            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+            className="w-full bg-gray-100 p-4 rounded-lg"
+            required
+          />
+          <input
+            type="password"
+            placeholder="비밀번호"
+            value={formData.password}
+            onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+            className="w-full bg-gray-100 p-4 rounded-lg"
+            required
+          />
           <input
             type="text"
-            placeholder="닉네임"
-            value={formData.nickname}
-            onChange={(e) => setFormData(prev => ({ ...prev, nickname: e.target.value }))}
+            placeholder="이름"
+            value={formData.name}
+            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
             className="w-full bg-gray-100 p-4 rounded-lg"
+            required
           />
         </div>
 

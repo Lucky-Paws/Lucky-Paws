@@ -11,15 +11,11 @@ export interface UpdateCommentDto {
   content: string;
 }
 
-export interface CommentListResponse {
-  comments: Comment[];
-  total: number;
-}
 
 export const commentService = {
   // 댓글 목록 조회
-  async getComments(postId: string): Promise<CommentListResponse> {
-    return apiClient.get<CommentListResponse>(API_ENDPOINTS.COMMENTS.LIST(postId));
+  async getComments(postId: string): Promise<Comment[]> {
+    return apiClient.get<Comment[]>(API_ENDPOINTS.COMMENTS.LIST(postId));
   },
 
   // 댓글 작성

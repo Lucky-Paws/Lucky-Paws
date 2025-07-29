@@ -1,123 +1,85 @@
-import { ApiResponse } from '@/types';
+import { apiClient } from '@/lib/api/client';
+import { API_ENDPOINTS } from '@/lib/api/config';
+import { User } from '@/types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
-
-export interface SignupRequestDto {
+export interface SignupDto {
   email: string;
   password: string;
   name: string;
-  nickname: string;
-  careerYear: number;
-  schoolLevel: string;
+  type: 'mentor' | 'mentee';
+  teacherType?: 'elementary' | 'middle' | 'high';
+  yearsOfExperience?: number;
 }
 
-export interface SignupResponseDto {
-  id: number;
+export interface LoginDto {
   email: string;
-  name: string;
-  nickname: string;
-  careerYear: number;
-  schoolLevel: string;
+  password: string;
 }
 
-export interface KakaoLoginRequestDto {
-  accessToken: string;
-  provider: string;
+export interface AuthResponse {
+  user: User;
+  tokens: {
+    accessToken: string;
+    refreshToken: string;
+  };
 }
 
-export interface LoginResponseDto {
-  id: number;
-  email: string;
-  name: string;
-  nickname: string;
-  careerYear: number;
-  schoolLevel: string;
-  token: string;
-  expiresIn: number;
-}
-
-class AuthService {
-  private async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<ApiResponse<T>> {
-    const url = `${API_BASE_URL}${endpoint}`;
-
-    const defaultHeaders = {
-      'Content-Type': 'application/json',
-    };
-
-    const config: RequestInit = {
-      ...options,
-      headers: {
-        ...defaultHeaders,
-        ...options.headers,
-      },
-    };
-
-    try {
-      const response = await fetch(url, config);
-      const data = await response.json();
-
-      // 스프링 부트 응답 형식에 맞춰 처리
-      if (response.ok) {
-        // 성공 응답
-        return {
-          success: true,
-          data: data.data || data, // data 필드가 있으면 사용, 없으면 전체 응답
-          message: data.message
-        };
-      } else {
-        // 에러 응답
-        return {
-          success: false,
-          error: {
-            code: data.code || 'ERROR',
-            message: data.message || data.error || '요청에 실패했습니다.'
-          }
-        };
-      }
-    } catch (error) {
-      console.error('API request failed:', error);
-      return {
-        success: false,
-        error: {
-          code: 'NETWORK_ERROR',
-          message: '네트워크 오류가 발생했습니다.'
-        }
-      };
+export const authService = {
+  async signup(data: SignupDto): Promise<AuthResponse> {
+    const response = await apiClient.post<AuthResponse>(API_ENDPOINTS.AUTH.SIGNUP, data);
+    
+    // Store tokens
+    if (response.tokens) {
+      apiClient.setAccessToken(response.tokens.accessToken);
+      localStorage.setItem('refreshToken', response.tokens.refreshToken);
     }
-  }
+    
+    return response;
+  },
 
-  // 카카오 로그인
-  async kakaoLogin(accessToken: string): Promise<ApiResponse<LoginResponseDto>> {
-    return this.request<LoginResponseDto>('/auth/kakao/login', {
-      method: 'POST',
-      body: JSON.stringify({
-        accessToken,
-        provider: 'kakao'
-      }),
+  async login(data: LoginDto): Promise<AuthResponse> {
+    const response = await apiClient.post<AuthResponse>(API_ENDPOINTS.AUTH.LOGIN, data);
+    
+    // Store tokens
+    if (response.tokens) {
+      apiClient.setAccessToken(response.tokens.accessToken);
+      localStorage.setItem('refreshToken', response.tokens.refreshToken);
+    }
+    
+    return response;
+  },
+
+  async logout(): Promise<void> {
+    try {
+      await apiClient.post(API_ENDPOINTS.AUTH.LOGOUT);
+    } finally {
+      // Clear tokens regardless of API response
+      apiClient.setAccessToken(null);
+      localStorage.removeItem('refreshToken');
+    }
+  },
+
+  async getProfile(): Promise<User> {
+    return apiClient.get<User>(API_ENDPOINTS.AUTH.PROFILE);
+  },
+
+  async refreshToken(): Promise<AuthResponse> {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
+    const response = await apiClient.post<AuthResponse>(API_ENDPOINTS.AUTH.REFRESH, {
+      refreshToken,
     });
-  }
 
-  // 구글 로그인
-  async googleLogin(accessToken: string): Promise<ApiResponse<LoginResponseDto>> {
-    return this.request<LoginResponseDto>('/auth/google/login', {
-      method: 'POST',
-      body: JSON.stringify({
-        accessToken,
-        provider: 'google'
-      }),
-    });
-  }
+    // Update tokens
+    if (response.tokens) {
+      apiClient.setAccessToken(response.tokens.accessToken);
+      localStorage.setItem('refreshToken', response.tokens.refreshToken);
+    }
 
-  // 회원가입
-  async signUp(userData: SignupRequestDto): Promise<ApiResponse<SignupResponseDto>> {
-    return this.request<SignupResponseDto>('/auth/signup', {
-      method: 'POST',
-      body: JSON.stringify(userData),
-    });
-  }
-}
-
-export const authService = new AuthService(); 
+    return response;
+  },
+};
+ 

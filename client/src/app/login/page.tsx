@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
+import { authService } from '@/services/authService';
 
 export default function LoginPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    username: '',
+    email: '',
     password: '',
     keepLoggedIn: false
   });
@@ -28,26 +28,18 @@ export default function LoginPage() {
     setError('');
 
     try {
-      // 임시 로그인 (백엔드 연결 전)
-      if (formData.username === 'test' && formData.password === 'test') {
-        const result = await signIn('credentials', {
-          username: formData.username,
-          password: formData.password,
-          redirect: false,
-        });
+      const response = await authService.login({
+        email: formData.email,
+        password: formData.password,
+      });
 
-        if (result?.error) {
-          setError('세션 생성에 실패했습니다.');
-        } else {
-          // 로그인 성공 시 메인 페이지로 이동
-          router.push('/');
-        }
-      } else {
-        setError('아이디 또는 비밀번호가 올바르지 않습니다.');
+      if (response) {
+        // 로그인 성공 시 메인 페이지로 이동
+        router.push('/');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Login error:', err);
-      setError('로그인 중 오류가 발생했습니다.');
+      setError(err.message || '로그인 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
@@ -82,13 +74,13 @@ export default function LoginPage() {
         
         {/* Login Form */}
         <form onSubmit={handleLogin} className="w-full max-w-sm space-y-6">
-          {/* Username Input */}
+          {/* Email Input */}
           <div>
             <input
-              type="text"
-              name="username"
-              placeholder="아이디"
-              value={formData.username}
+              type="email"
+              name="email"
+              placeholder="이메일"
+              value={formData.email}
               onChange={handleInputChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-500 text-base"
               required

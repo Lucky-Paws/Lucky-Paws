@@ -4,66 +4,128 @@ interface RequestOptions extends RequestInit {
   params?: Record<string, any>;
 }
 
+interface ApiError extends Error {
+  code?: string;
+  status?: number;
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  error?: {
+    code: string;
+    message: string;
+  };
+}
+
 class ApiClient {
   private baseURL: string;
-  private defaultHeaders: HeadersInit;
+  private accessToken: string | null = null;
 
-  constructor() {
-    this.baseURL = API_BASE_URL;
-    this.defaultHeaders = {
-      'Content-Type': 'application/json',
-    };
+  constructor(baseURL: string) {
+    this.baseURL = baseURL;
+    this.loadToken();
   }
 
-  private async getAuthToken(): Promise<string | null> {
-    if (typeof window === 'undefined') return null;
-    
-    // NextAuth 세션에서 토큰 가져오기
-    const session = await fetch('/api/auth/session').then(res => res.json());
-    return session?.accessToken || null;
+  private loadToken(): void {
+    if (typeof window !== 'undefined') {
+      this.accessToken = localStorage.getItem('accessToken');
+    }
   }
 
-  private async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-    const { params, headers, ...restOptions } = options;
-    
-    // URL 파라미터 처리
+  setAccessToken(token: string | null): void {
+    this.accessToken = token;
+    if (typeof window !== 'undefined') {
+      if (token) {
+        localStorage.setItem('accessToken', token);
+      } else {
+        localStorage.removeItem('accessToken');
+      }
+    }
+  }
+
+  private async request<T>(
+    endpoint: string,
+    options: RequestOptions = {}
+  ): Promise<T> {
+    const { params, headers = {}, ...restOptions } = options;
+
     let url = `${this.baseURL}${endpoint}`;
+    
     if (params) {
       const queryString = new URLSearchParams(params).toString();
-      url += `?${queryString}`;
+      if (queryString) {
+        url += `?${queryString}`;
+      }
     }
 
-    // 인증 토큰 추가
-    const token = await this.getAuthToken();
-    const finalHeaders: HeadersInit = {
-      ...this.defaultHeaders,
-      ...headers,
+    const config: RequestInit = {
+      ...restOptions,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(this.accessToken && { Authorization: `Bearer ${this.accessToken}` }),
+        ...headers,
+      },
     };
 
-    if (token) {
-      finalHeaders['Authorization'] = `Bearer ${token}`;
+    try {
+      const response = await fetch(url, config);
+
+      if (!response.ok) {
+        const errorData = await response.json() as ApiResponse<any>;
+        const error = new Error(errorData.message || 'Request failed') as ApiError;
+        error.code = errorData.error?.code;
+        error.status = response.status;
+
+        if (response.status === 401 && this.accessToken) {
+          // Try to refresh token
+          await this.refreshToken();
+          // Retry the request
+          return this.request<T>(endpoint, options);
+        }
+
+        throw error;
+      }
+
+      const data = await response.json() as ApiResponse<T>;
+      return data.data as T;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  }
+
+  private async refreshToken(): Promise<void> {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (!refreshToken) {
+      this.setAccessToken(null);
+      window.location.href = '/login';
+      return;
     }
 
     try {
-      const response = await fetch(url, {
-        ...restOptions,
-        headers: finalHeaders,
+      const response = await fetch(`${this.baseURL}/api/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
       });
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: 'Network error' }));
-        throw new Error(error.message || `HTTP error! status: ${response.status}`);
+        throw new Error('Token refresh failed');
       }
 
-      // 204 No Content 처리
-      if (response.status === 204) {
-        return {} as T;
+      const data = await response.json() as ApiResponse<{ tokens: { accessToken: string; refreshToken: string } }>;
+      if (data.data) {
+        this.setAccessToken(data.data.tokens.accessToken);
+        localStorage.setItem('refreshToken', data.data.tokens.refreshToken);
       }
-
-      return await response.json();
     } catch (error) {
-      console.error('API request failed:', error);
-      throw error;
+      this.setAccessToken(null);
+      localStorage.removeItem('refreshToken');
+      window.location.href = '/login';
     }
   }
 
@@ -100,4 +162,4 @@ class ApiClient {
   }
 }
 
-export const apiClient = new ApiClient();
+export const apiClient = new ApiClient(API_BASE_URL);
