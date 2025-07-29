@@ -11,7 +11,8 @@
     "lint": "eslint src",
     "test": "jest",
     "db:migrate": "tsx src/utils/migrate.ts",
-    "db:seed": "tsx src/utils/seed.ts"
+    "db:seed": "tsx src/utils/seed.ts",
+    "setup-db": "node scripts/setup-database.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.53.0",

@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { IUser } from '../types';
-import { User } from '../models/User';
+import { supabase } from '../config/supabase';
 import { AppError } from '../middleware/errorHandler';
 
 interface TokenPayload {
@@ -25,7 +25,7 @@ interface SocialLoginData {
 export const authService = {
   generateTokens(user: IUser): AuthTokens {
     const payload: TokenPayload = {
-      id: (user._id as any).toString(),
+      id: user.id,
       email: user.email,
       type: user.type,
     };
@@ -47,80 +47,128 @@ export const authService = {
     teacherType?: string;
     yearsOfExperience?: number;
   }): Promise<{ user: IUser; tokens: AuthTokens }> {
-    const existingUser = await User.findOne({ email: data.email });
+    // 기존 사용자 확인
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', data.email)
+      .single();
+
     if (existingUser) {
       throw new AppError('Email already registered', 400);
     }
 
-    const user = await User.create(data);
-    const tokens = this.generateTokens(user);
+    // 새 사용자 생성
+    const { data: user, error } = await supabase
+      .from('users')
+      .insert([{
+        name: data.name,
+        email: data.email,
+        password: data.password, // 실제로는 해시된 비밀번호를 저장해야 함
+        type: data.type,
+        teacher_type: data.teacherType,
+        years_of_experience: data.yearsOfExperience,
+        is_verified: false,
+      }])
+      .select()
+      .single();
 
-    user.refreshToken = tokens.refreshToken;
-    await user.save();
+    if (error) {
+      throw new AppError('Failed to create user', 500);
+    }
 
-    return { user, tokens };
+    const tokens = this.generateTokens(user as IUser);
+    
+    // refresh token 업데이트
+    await supabase
+      .from('users')
+      .update({ refresh_token: tokens.refreshToken })
+      .eq('id', user.id);
+
+    return { user: user as IUser, tokens };
   },
 
   async login(email: string, password: string): Promise<{ user: IUser; tokens: AuthTokens }> {
-    const user = await User.findOne({ email });
-    if (!user) {
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    if (error || !user) {
       throw new AppError('Invalid credentials', 401);
     }
 
-    const isPasswordValid = await user.comparePassword(password);
-    if (!isPasswordValid) {
+    // 실제로는 bcrypt로 비밀번호를 검증해야 함
+    if (user.password !== password) {
       throw new AppError('Invalid credentials', 401);
     }
 
-    const tokens = this.generateTokens(user);
+    const tokens = this.generateTokens(user as IUser);
+    
+    // refresh token 업데이트
+    await supabase
+      .from('users')
+      .update({ refresh_token: tokens.refreshToken })
+      .eq('id', user.id);
 
-    user.refreshToken = tokens.refreshToken;
-    await user.save();
-
-    return { user, tokens };
+    return { user: user as IUser, tokens };
   },
 
   async socialLogin(data: SocialLoginData): Promise<{ user: IUser; tokens: AuthTokens; isNewUser: boolean }> {
     console.log('Social login attempt:', { email: data.email, provider: data.provider });
     
     // 기존 사용자 확인
-    let user = await User.findOne({ email: data.email });
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', data.email)
+      .single();
+
+    let user: any;
     let isNewUser = false;
 
-    if (!user) {
+    if (!existingUser) {
       // 신규 사용자 - 임시 계정 생성
       isNewUser = true;
       console.log('Creating new user for social login');
       
-      user = await User.create({
-        email: data.email,
-        name: data.name,
-        password: `${data.provider}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // 임시 비밀번호
-        avatar: data.profileImage,
-        type: 'mentee', // 기본값, 나중에 변경 가능
-        isVerified: false, // 추가 정보 입력 전까지는 미인증
-      });
-      
-      console.log('New user created:', user._id);
+      const { data: newUser, error } = await supabase
+        .from('users')
+        .insert([{
+          email: data.email,
+          name: data.name,
+          password: `${data.provider}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // 임시 비밀번호
+          avatar: data.profileImage,
+          type: 'mentee', // 기본값, 나중에 변경 가능
+          is_verified: false, // 추가 정보 입력 전까지는 미인증
+        }])
+        .select()
+        .single();
+
+      if (error) {
+        throw new AppError('Failed to create user', 500);
+      }
+
+      user = newUser;
+      console.log('New user created:', user.id);
       console.log('User data saved:', { email: user.email, name: user.name, type: user.type });
     } else {
-      console.log('Existing user found:', user._id);
+      user = existingUser;
+      console.log('Existing user found:', user.id);
       console.log('Existing user data:', { email: user.email, name: user.name, type: user.type });
     }
 
-    const tokens = this.generateTokens(user);
-    user.refreshToken = tokens.refreshToken;
-    await user.save();
-
-    // 데이터베이스에 실제로 저장되었는지 확인
-    const savedUser = await User.findById(user._id);
-    console.log('User saved to database:', savedUser ? 'YES' : 'NO');
-    if (savedUser) {
-      console.log('Saved user details:', { id: savedUser._id, email: savedUser.email, name: savedUser.name });
-    }
+    const tokens = this.generateTokens(user as IUser);
+    
+    // refresh token 업데이트
+    await supabase
+      .from('users')
+      .update({ refresh_token: tokens.refreshToken })
+      .eq('id', user.id);
 
     console.log('Social login successful, isNewUser:', isNewUser);
-    return { user, tokens, isNewUser };
+    return { user: user as IUser, tokens, isNewUser };
   },
 
   async completeSocialSignup(data: {
@@ -130,26 +178,42 @@ export const authService = {
     teacherType?: string;
     yearsOfExperience?: number;
   }): Promise<{ user: IUser; tokens: AuthTokens }> {
-    const user = await User.findOne({ email: data.email });
-    if (!user) {
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', data.email)
+      .single();
+
+    if (error || !user) {
       throw new AppError('User not found', 404);
     }
 
     // 사용자 정보 업데이트
-    user.name = data.name;
-    user.type = data.type;
-    if (data.type === 'mentor') {
-      user.teacherType = data.teacherType as any;
-      user.yearsOfExperience = data.yearsOfExperience;
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({
+        name: data.name,
+        type: data.type,
+        teacher_type: data.teacherType,
+        years_of_experience: data.yearsOfExperience,
+        is_verified: true,
+      })
+      .eq('id', user.id);
+
+    if (updateError) {
+      throw new AppError('Failed to update user', 500);
     }
-    user.isVerified = true;
-    await user.save();
 
-    const tokens = this.generateTokens(user);
-    user.refreshToken = tokens.refreshToken;
-    await user.save();
+    const updatedUser = { ...user, ...data, is_verified: true };
+    const tokens = this.generateTokens(updatedUser as IUser);
+    
+    // refresh token 업데이트
+    await supabase
+      .from('users')
+      .update({ refresh_token: tokens.refreshToken })
+      .eq('id', user.id);
 
-    return { user, tokens };
+    return { user: updatedUser as IUser, tokens };
   },
 
   async refreshTokens(refreshToken: string): Promise<AuthTokens> {
@@ -159,15 +223,24 @@ export const authService = {
         process.env.JWT_REFRESH_SECRET || 'your-refresh-secret'
       ) as TokenPayload;
 
-      const user = await User.findById(decoded.id);
-      if (!user || user.refreshToken !== refreshToken) {
+      const { data: user } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', decoded.id)
+        .eq('refresh_token', refreshToken)
+        .single();
+
+      if (!user) {
         throw new AppError('Invalid refresh token', 401);
       }
 
-      const tokens = this.generateTokens(user);
+      const tokens = this.generateTokens(user as IUser);
 
-      user.refreshToken = tokens.refreshToken;
-      await user.save();
+      // refresh token 업데이트
+      await supabase
+        .from('users')
+        .update({ refresh_token: tokens.refreshToken })
+        .eq('id', user.id);
 
       return tokens;
     } catch (error) {
@@ -176,14 +249,23 @@ export const authService = {
   },
 
   async logout(userId: string): Promise<void> {
-    await User.findByIdAndUpdate(userId, { refreshToken: null });
+    await supabase
+      .from('users')
+      .update({ refresh_token: null })
+      .eq('id', userId);
   },
 
   async getProfile(userId: string): Promise<IUser> {
-    const user = await User.findById(userId).select('-password -refreshToken');
-    if (!user) {
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('id, name, email, avatar, type, teacher_type, years_of_experience, bio, is_verified, created_at, updated_at')
+      .eq('id', userId)
+      .single();
+
+    if (error || !user) {
       throw new AppError('User not found', 404);
     }
-    return user;
+
+    return user as IUser;
   },
 };

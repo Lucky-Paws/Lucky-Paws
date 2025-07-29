@@ -13,19 +13,19 @@ class InMemoryStorage {
   async createUser(userData: Partial<IUser>): Promise<IUser> {
     const id = Date.now().toString();
     const user: IUser = {
-      _id: id,
+      id: id,
       email: userData.email || '',
       name: userData.name || '',
       password: userData.password || '',
       type: userData.type || 'mentee',
       avatar: userData.avatar,
-      teacherType: userData.teacherType,
-      yearsOfExperience: userData.yearsOfExperience,
-      isVerified: userData.isVerified || false,
-      refreshToken: userData.refreshToken,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    } as IUser;
+      teacher_type: userData.teacher_type,
+      years_of_experience: userData.years_of_experience,
+      is_verified: userData.is_verified || false,
+      refresh_token: userData.refresh_token,
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
 
     this.users.set(id, user);
     return user;
@@ -48,7 +48,7 @@ class InMemoryStorage {
     const user = this.users.get(id);
     if (!user) return null;
 
-    const updatedUser = { ...user, ...updateData, updatedAt: new Date() };
+    const updatedUser = { ...user, ...updateData, updated_at: new Date() };
     this.users.set(id, updatedUser);
     return updatedUser;
   }

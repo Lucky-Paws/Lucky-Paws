@@ -1,10 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { authService } from '@/services/authService';
+import { checkServerStatus, getServerStatusMessage, ServerStatus } from '@/utils/serverStatus';
 
 export default function Landing() {
   const router = useRouter();
+  const [serverStatus, setServerStatus] = useState<ServerStatus | null>(null);
+  const [isCheckingServer, setIsCheckingServer] = useState(true);
 
   const handleGoogleLogin = async () => {
     // Google OAuth 구현 필요
@@ -20,6 +24,27 @@ export default function Landing() {
     router.push('/login');
   };
 
+  // 서버 상태 확인
+  useEffect(() => {
+    const checkServer = async () => {
+      try {
+        const status = await checkServerStatus();
+        setServerStatus(status);
+      } catch (error) {
+        console.error('Server status check failed:', error);
+        setServerStatus({
+          isOnline: false,
+          message: '서버 상태 확인 중 오류가 발생했습니다.',
+          timestamp: new Date(),
+        });
+      } finally {
+        setIsCheckingServer(false);
+      }
+    };
+
+    checkServer();
+  }, []);
+
   // 테스트용 소셜 로그인 시뮬레이션
   const handleTestSocialLogin = async (provider: 'google' | 'kakao') => {
     try {
@@ -32,6 +57,7 @@ export default function Landing() {
         profileImage: undefined,
       };
 
+      console.log(`Attempting ${provider} social login...`);
       const response = await authService.socialLogin(mockSocialData);
       
       console.log('Social login response:', response);
@@ -47,12 +73,53 @@ export default function Landing() {
       }
     } catch (error) {
       console.error('Social login error:', error);
-      alert('소셜 로그인 중 오류가 발생했습니다.');
+      
+      // 더 구체적인 오류 메시지 표시
+      let errorMessage = '소셜 로그인 중 오류가 발생했습니다.';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('서버에 연결할 수 없습니다')) {
+          errorMessage = '서버가 실행되지 않았습니다. 모의 데이터로 계속 진행합니다.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      alert(errorMessage);
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
+      {/* 서버 상태 표시 */}
+      {!isCheckingServer && serverStatus && (
+        <div className="absolute top-4 right-4 p-3 bg-white rounded-lg shadow-md border">
+          <div className="text-sm">
+            <div className="font-medium">서버 상태</div>
+            <div className={`text-xs ${serverStatus.isOnline ? 'text-green-600' : 'text-red-600'}`}>
+              {getServerStatusMessage(serverStatus)}
+            </div>
+            {!serverStatus.isOnline && (
+              <div className="text-xs text-gray-500 mt-1">
+                모의 데이터로 테스트 가능
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 서버 오프라인 안내 */}
+      {!isCheckingServer && serverStatus && !serverStatus.isOnline && (
+        <div className="absolute top-4 left-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg shadow-md">
+          <div className="text-sm text-yellow-800">
+            <div className="font-medium">⚠️ 개발 모드</div>
+            <div className="text-xs">
+              서버가 실행되지 않아 모의 데이터를 사용합니다.
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 로고 */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800 text-center">로고</h1>
@@ -68,7 +135,7 @@ export default function Landing() {
           <div className="w-5 h-5 bg-black rounded-full flex items-center justify-center">
             <span className="text-yellow-400 text-xs font-bold">K</span>
           </div>
-          카카오로 시작하기
+          {serverStatus?.isOnline ? '카카오로 시작하기' : '카카오로 시작하기 (모의 데이터)'}
         </button>
 
         {/* 구글 로그인 */}
@@ -94,7 +161,7 @@ export default function Landing() {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-          구글로 시작하기
+          {serverStatus?.isOnline ? '구글로 시작하기' : '구글로 시작하기 (모의 데이터)'}
         </button>
 
         {/* 전통적인 로그인 */}

@@ -73,7 +73,17 @@ class ApiClient {
       const response = await fetch(url, config);
 
       if (!response.ok) {
-        const errorData = await response.json() as ApiResponse<any>;
+        let errorData: ApiResponse<any>;
+        try {
+          errorData = await response.json() as ApiResponse<any>;
+        } catch {
+          // JSON 파싱 실패 시 기본 오류 메시지 사용
+          errorData = { 
+            success: false, 
+            message: `HTTP ${response.status}: ${response.statusText}` 
+          };
+        }
+        
         const error = new Error(errorData.message || 'Request failed') as ApiError;
         error.code = errorData.error?.code;
         error.status = response.status;
@@ -92,6 +102,10 @@ class ApiClient {
       return data.data as T;
     } catch (error) {
       if (error instanceof Error) {
+        // 네트워크 오류나 서버 연결 실패 시 더 명확한 메시지
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+          throw new Error('서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.');
+        }
         throw error;
       }
       throw new Error('An unexpected error occurred');
