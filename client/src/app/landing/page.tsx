@@ -34,12 +34,16 @@ export default function Landing() {
 
       const response = await authService.socialLogin(mockSocialData);
       
+      console.log('Social login response:', response);
+      
       if (response.isNewUser) {
         // 신규 사용자 - 추가 정보 입력 필요
         router.push(`/signup?type=social&email=${mockSocialData.email}&name=${mockSocialData.name}`);
       } else {
-        // 기존 사용자 - 메인 페이지로
-        router.push('/');
+        // 기존 사용자 - community 페이지로
+        console.log('Existing user, redirecting to community page');
+        router.push('/community');
+        return; // 함수 종료하여 추가 실행 방지
       }
     } catch (error) {
       console.error('Social login error:', error);

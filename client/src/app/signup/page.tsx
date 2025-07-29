@@ -92,8 +92,9 @@ export default function Signup() {
         const response = await authService.completeSocialSignup(socialSignupData);
         
         if (response) {
+          console.log('Social signup completed:', response);
           alert('회원가입이 완료되었습니다.');
-          router.push('/');
+          router.push('/community');
         }
       } else {
         // 일반 회원가입

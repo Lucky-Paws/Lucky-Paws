@@ -25,26 +25,16 @@ interface SocialLoginData {
 export const authService = {
   generateTokens(user: IUser): AuthTokens {
     const payload: TokenPayload = {
-      id: user._id.toString(),
+      id: (user._id as any).toString(),
       email: user.email,
       type: user.type,
     };
 
-    const accessToken = jwt.sign(
-      payload,
-      process.env.JWT_SECRET || 'your-jwt-secret',
-      {
-        expiresIn: process.env.JWT_EXPIRE_TIME || '7d',
-      }
-    );
+    const jwtSecret = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production';
+    const refreshSecret = process.env.JWT_REFRESH_SECRET || 'your-refresh-secret-key-change-this-in-production';
 
-    const refreshToken = jwt.sign(
-      payload,
-      process.env.JWT_REFRESH_SECRET || 'your-refresh-secret',
-      {
-        expiresIn: process.env.JWT_REFRESH_EXPIRE_TIME || '30d',
-      }
-    );
+    const accessToken = jwt.sign(payload, jwtSecret, { expiresIn: '7d' });
+    const refreshToken = jwt.sign(payload, refreshSecret, { expiresIn: '30d' });
 
     return { accessToken, refreshToken };
   },
@@ -91,6 +81,8 @@ export const authService = {
   },
 
   async socialLogin(data: SocialLoginData): Promise<{ user: IUser; tokens: AuthTokens; isNewUser: boolean }> {
+    console.log('Social login attempt:', { email: data.email, provider: data.provider });
+    
     // 기존 사용자 확인
     let user = await User.findOne({ email: data.email });
     let isNewUser = false;
@@ -98,6 +90,8 @@ export const authService = {
     if (!user) {
       // 신규 사용자 - 임시 계정 생성
       isNewUser = true;
+      console.log('Creating new user for social login');
+      
       user = await User.create({
         email: data.email,
         name: data.name,
@@ -106,12 +100,17 @@ export const authService = {
         type: 'mentee', // 기본값, 나중에 변경 가능
         isVerified: false, // 추가 정보 입력 전까지는 미인증
       });
+      
+      console.log('New user created:', user._id);
+    } else {
+      console.log('Existing user found:', user._id);
     }
 
     const tokens = this.generateTokens(user);
     user.refreshToken = tokens.refreshToken;
     await user.save();
 
+    console.log('Social login successful, isNewUser:', isNewUser);
     return { user, tokens, isNewUser };
   },
 

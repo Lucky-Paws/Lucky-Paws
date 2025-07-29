@@ -53,22 +53,27 @@ export function usePosts(options: UsePostsOptions = {}) {
       setError(null);
       
       try {
-        // 목 데이터 사용 (API 호출 비활성화)
-        console.log('목 데이터 사용 중');
+        // 실제 API 호출
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/posts?page=${page}&limit=20`);
         
-        let allPosts = generateMockPosts();
+        if (!response.ok) {
+          throw new Error('Failed to fetch posts');
+        }
+        
+        const data = await response.json();
+        let allPosts: Post[] = data.data || [];
         
         // Apply filters
         if (options.category) {
-          allPosts = allPosts.filter(post => post.category === options.category);
+          allPosts = allPosts.filter((post: Post) => post.category === options.category);
         }
         
         if (options.teacherLevel) {
-          allPosts = allPosts.filter(post => post.author.teacherType === options.teacherLevel);
+          allPosts = allPosts.filter((post: Post) => post.author.teacherType === options.teacherLevel);
         }
         
         if (options.experienceYears) {
-          allPosts = allPosts.filter(post => {
+          allPosts = allPosts.filter((post: Post) => {
             const years = post.author.yearsOfExperience;
             if (!years) return false;
             
@@ -87,12 +92,12 @@ export function usePosts(options: UsePostsOptions = {}) {
         }
         
         if (options.isAnswered !== undefined) {
-          allPosts = allPosts.filter(post => post.isAnswered === options.isAnswered);
+          allPosts = allPosts.filter((post: Post) => post.isAnswered === options.isAnswered);
         }
         
         if (options.searchQuery) {
           const query = options.searchQuery.toLowerCase();
-          allPosts = allPosts.filter(post => 
+          allPosts = allPosts.filter((post: Post) => 
             post.title.toLowerCase().includes(query) || 
             post.content.toLowerCase().includes(query)
           );
@@ -100,9 +105,9 @@ export function usePosts(options: UsePostsOptions = {}) {
         
         // Apply sorting
         if (options.sortBy === 'popular') {
-          allPosts.sort((a, b) => b.likeCount - a.likeCount);
+          allPosts.sort((a: Post, b: Post) => b.likeCount - a.likeCount);
         } else {
-          allPosts.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+          allPosts.sort((a: Post, b: Post) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         }
         
         setPosts(allPosts);

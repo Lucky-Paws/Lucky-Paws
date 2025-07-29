@@ -2,11 +2,13 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost
 
 export const API_ENDPOINTS = {
   AUTH: {
-    LOGIN: '/auth/login',
-    SIGNUP: '/auth/signup',
-    LOGOUT: '/auth/logout',
-    REFRESH: '/auth/refresh',
-    PROFILE: '/auth/profile',
+    LOGIN: '/api/auth/login',
+    SIGNUP: '/api/auth/signup',
+    LOGOUT: '/api/auth/logout',
+    REFRESH: '/api/auth/refresh',
+    PROFILE: '/api/auth/profile',
+    SOCIAL_LOGIN: '/api/auth/social-login',
+    COMPLETE_SOCIAL_SIGNUP: '/api/auth/complete-social-signup',
   },
   USERS: {
     LIST: '/users',

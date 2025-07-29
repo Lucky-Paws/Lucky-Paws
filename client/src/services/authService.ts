@@ -70,7 +70,7 @@ export const authService = {
   },
 
   async socialLogin(data: SocialLoginDto): Promise<SocialAuthResponse> {
-    const response = await apiClient.post<SocialAuthResponse>('/api/auth/social-login', data);
+    const response = await apiClient.post<SocialAuthResponse>(API_ENDPOINTS.AUTH.SOCIAL_LOGIN, data);
     
     // Store tokens
     if (response.tokens) {
@@ -82,7 +82,7 @@ export const authService = {
   },
 
   async completeSocialSignup(data: CompleteSocialSignupDto): Promise<AuthResponse> {
-    const response = await apiClient.post<AuthResponse>('/api/auth/complete-social-signup', data);
+    const response = await apiClient.post<AuthResponse>(API_ENDPOINTS.AUTH.COMPLETE_SOCIAL_SIGNUP, data);
     
     // Store tokens
     if (response.tokens) {

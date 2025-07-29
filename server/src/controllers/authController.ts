@@ -39,6 +39,8 @@ export const authController = {
   async socialLogin(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { provider, accessToken, email, name, profileImage } = req.body;
+      console.log('Social login request:', { provider, email, name });
+      
       const { user, tokens, isNewUser } = await authService.socialLogin({
         provider,
         accessToken,
@@ -46,6 +48,8 @@ export const authController = {
         name,
         profileImage,
       });
+
+      console.log('Social login response:', { userId: user._id, isNewUser });
 
       res.json({
         success: true,
@@ -56,6 +60,7 @@ export const authController = {
         },
       });
     } catch (error) {
+      console.error('Social login error:', error);
       next(error);
     }
   },

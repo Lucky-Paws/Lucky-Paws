@@ -11,6 +11,7 @@ const userSchema = new Schema<IUser>(
       minlength: 2,
       maxlength: 50,
     },
+
     email: {
       type: String,
       required: true,
@@ -87,5 +88,7 @@ userSchema.set('toJSON', {
     return ret;
   },
 });
+
+// email 필드에 unique 인덱스는 이미 스키마에서 정의되어 있으므로 추가 정의하지 않음
 
 export const User = model<IUser>('User', userSchema);
