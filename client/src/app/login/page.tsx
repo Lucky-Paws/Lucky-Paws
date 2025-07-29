@@ -33,13 +33,19 @@ export default function LoginPage() {
         password: formData.password,
       });
 
-      if (response) {
-        // 로그인 성공 시 community 페이지로 이동
-        router.push('/community');
+      if (response.user) {
+        // 로그인 성공 시 home 페이지로 이동
+        router.push('/');
       }
     } catch (err: any) {
-      console.error('Login error:', err);
-      setError(err.message || '로그인 중 오류가 발생했습니다.');
+      console.error('Login error details:', err);
+      if (err.message === 'Invalid login credentials') {
+        setError('이메일 또는 비밀번호가 올바르지 않습니다.');
+      } else if (err.message === 'Email not confirmed') {
+        setError('이메일 인증이 필요합니다. 이메일을 확인해주세요.');
+      } else {
+        setError(err.message || '로그인 중 오류가 발생했습니다.');
+      }
     } finally {
       setLoading(false);
     }

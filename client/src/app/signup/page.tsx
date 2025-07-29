@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { authService, SignupDto, CompleteSocialSignupDto } from '@/services/authService';
+import { authService } from '@/services/authService';
 
 type SignupType = 'normal' | 'social';
 
@@ -12,13 +12,20 @@ export default function Signup() {
   const [signupType, setSignupType] = useState<SignupType>('normal');
   const [socialData, setSocialData] = useState<{email: string; name: string} | null>(null);
   
-  const [formData, setFormData] = useState<SignupDto>({
+  const [formData, setFormData] = useState<{
+    email: string;
+    password: string;
+    name: string;
+    type: 'mentor' | 'mentee';
+    teacherType?: string;
+    bio?: string;
+  }>({
     email: '',
     password: '',
     name: '',
     type: 'mentor',
     teacherType: undefined,
-    yearsOfExperience: undefined
+    bio: ''
   });
 
   const [selectedCareer, setSelectedCareer] = useState('교직 경력');
@@ -32,10 +39,10 @@ export default function Signup() {
   const careerOptions = ['1년차', '2년차', '3년차', '4년차', '5년차', '6-10년차', '11-20년차', '20년차 이상'];
   const schoolOptions = ['초등', '중등', '고등'];
   
-  const teacherTypeMap: Record<string, 'elementary' | 'middle' | 'high'> = {
-    '초등': 'elementary',
-    '중등': 'middle',
-    '고등': 'high'
+  const teacherTypeMap: Record<string, string> = {
+    '초등': '초등학교',
+    '중등': '중학교',
+    '고등': '고등학교'
   };
 
   useEffect(() => {
@@ -81,26 +88,29 @@ export default function Signup() {
 
       if (signupType === 'social' && socialData) {
         // 소셜 회원가입 완료
-        const socialSignupData: CompleteSocialSignupDto = {
+        const response = await authService.completeSocialSignup({
           email: socialData.email,
           name: formData.name,
           type: formData.type,
-          teacherType: formData.teacherType,
-          yearsOfExperience: formData.yearsOfExperience,
-        };
+          teacherType: formData.teacherType?.replace('초등학교', 'elementary').replace('중학교', 'middle').replace('고등학교', 'high') as 'elementary' | 'middle' | 'high',
+          yearsOfExperience: selectedCareer ? parseInt(selectedCareer.replace(/[^년짰0-9]/g, '')) : undefined
+        });
         
-        const response = await authService.completeSocialSignup(socialSignupData);
-        
-        if (response) {
+        if (response.user) {
           console.log('Social signup completed:', response);
           alert('회원가입이 완료되었습니다.');
-          window.location.href = '/community';
+          window.location.href = '/';
         }
       } else {
         // 일반 회원가입
-        const response = await authService.signup(formData);
+        const response = await authService.signup({
+          ...formData,
+          type: formData.type,
+          teacherType: (formData.teacherType?.replace('초등학교', 'elementary').replace('중학교', 'middle').replace('고등학교', 'high') || 'elementary') as 'elementary' | 'middle' | 'high',
+          yearsOfExperience: selectedCareer ? parseInt(selectedCareer.replace(/[^년짰0-9]/g, '')) : undefined
+        });
         
-        if (response) {
+        if (response.user) {
           alert('회원가입이 완료되었습니다.');
           window.location.href = '/';
         }
@@ -129,13 +139,7 @@ export default function Signup() {
     setSelectedCareer(career);
     setShowCareerDropdown(false);
     
-    // yearsOfExperience를 숫자로 변환
-    const yearMatch = career.match(/\d+/);
-    const years = yearMatch ? parseInt(yearMatch[0]) : 1;
-    setFormData(prev => ({
-      ...prev,
-      yearsOfExperience: years
-    }));
+    // 경력 저장은 필요시 추가 구현
   };
 
   const handleSchoolSelect = (school: string) => {
@@ -219,6 +223,13 @@ export default function Signup() {
             onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
             className="w-full bg-gray-100 p-4 rounded-lg"
             required
+          />
+          <textarea
+            placeholder="자기소개 (선택사항)"
+            value={formData.bio}
+            onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+            className="w-full bg-gray-100 p-4 rounded-lg resize-none"
+            rows={3}
           />
         </div>
 

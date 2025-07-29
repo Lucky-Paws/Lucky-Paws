@@ -16,6 +16,7 @@ export const authValidation = {
       then: Joi.optional(),
       otherwise: Joi.optional(),
     }),
+    bio: Joi.string().max(500).optional(),
   }),
 
   login: Joi.object({

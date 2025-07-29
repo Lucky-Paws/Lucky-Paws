@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Post, PostCategory, TeacherLevel, ExperienceYears } from '@/types';
+import { supabasePostService, PostQueryParams } from '@/services/supabasePostService';
 
 interface UsePostsOptions {
   category?: PostCategory;
@@ -11,34 +12,6 @@ interface UsePostsOptions {
   sortBy?: 'latest' | 'popular';
   searchQuery?: string;
 }
-
-// Mock data generator
-const generateMockPosts = (): Post[] => {
-  const categories: PostCategory[] = ['학생지도', '수업운영', '평가/과제', '학부모상담', '학부모'];
-  const levels: TeacherLevel[] = ['초등학교', '중학교', '고등학교'];
-  const experiences: ExperienceYears[] = ['1년차', '2년차', '3년차', '4년차', '5년차', '6-10년차', '11-20년차', '20년차 이상'];
-  
-  return Array.from({ length: 50 }, (_, i) => ({
-    id: `post-${i + 1}`,
-    title: `오늘 아이가 어떠구 ${i + 1}`,
-    content: '내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용...',
-    author: {
-      id: `user-${i % 10}`,
-      name: `${i % 2 === 0 ? 'OOO 멘티' : 'OOO 멘토'}`,
-      type: i % 2 === 0 ? 'mentee' : 'mentor',
-      teacherType: levels[i % 3],
-      yearsOfExperience: parseInt(experiences[i % 8])
-    },
-    createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
-    viewCount: Math.floor(Math.random() * 1000),
-    likeCount: Math.floor(Math.random() * 100),
-    commentCount: Math.floor(Math.random() * 50),
-    tags: [levels[i % 3] + ' 선생님', experiences[i % 8]],
-    category: categories[i % 5],
-    isAnswered: i % 3 !== 0,
-    isHot: Math.random() > 0.8
-  }));
-};
 
 export function usePosts(options: UsePostsOptions = {}) {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -53,27 +26,22 @@ export function usePosts(options: UsePostsOptions = {}) {
       setError(null);
       
       try {
-        // 실제 API 호출
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/posts?page=${page}&limit=20`);
+        const params: PostQueryParams = {
+          category: options.category,
+          teacherLevel: options.teacherLevel,
+          isAnswered: options.isAnswered,
+          sortBy: options.sortBy || 'latest',
+          page,
+          limit: 20,
+        };
+
+        const response = await supabasePostService.getPosts(params);
         
-        if (!response.ok) {
-          throw new Error('Failed to fetch posts');
-        }
+        let filteredPosts = response.posts;
         
-        const data = await response.json();
-        let allPosts: Post[] = data.data || [];
-        
-        // Apply filters
-        if (options.category) {
-          allPosts = allPosts.filter((post: Post) => post.category === options.category);
-        }
-        
-        if (options.teacherLevel) {
-          allPosts = allPosts.filter((post: Post) => post.author.teacherType === options.teacherLevel);
-        }
-        
-        if (options.experienceYears) {
-          allPosts = allPosts.filter((post: Post) => {
+        // Apply experience years filter if needed
+        if (options.experienceYears && filteredPosts.length > 0) {
+          filteredPosts = filteredPosts.filter((post: Post) => {
             const years = post.author.yearsOfExperience;
             if (!years) return false;
             
@@ -91,29 +59,21 @@ export function usePosts(options: UsePostsOptions = {}) {
           });
         }
         
-        if (options.isAnswered !== undefined) {
-          allPosts = allPosts.filter((post: Post) => post.isAnswered === options.isAnswered);
-        }
-        
+        // Apply search query filter
         if (options.searchQuery) {
           const query = options.searchQuery.toLowerCase();
-          allPosts = allPosts.filter((post: Post) => 
+          filteredPosts = filteredPosts.filter((post: Post) => 
             post.title.toLowerCase().includes(query) || 
             post.content.toLowerCase().includes(query)
           );
         }
         
-        // Apply sorting
-        if (options.sortBy === 'popular') {
-          allPosts.sort((a: Post, b: Post) => b.likeCount - a.likeCount);
-        } else {
-          allPosts.sort((a: Post, b: Post) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        }
-        
-        setPosts(allPosts);
-        setTotal(allPosts.length);
+        setPosts(filteredPosts);
+        setTotal(response.total);
       } catch (err) {
+        console.error('Error fetching posts:', err);
         setError('게시글을 불러오는데 실패했습니다.');
+        setPosts([]);
       } finally {
         setLoading(false);
       }

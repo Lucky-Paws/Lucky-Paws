@@ -8,6 +8,8 @@ import BottomNavigation from '@/components/BottomNavigation';
 import { usePosts } from '@/hooks/usePosts';
 import { TeacherLevel } from '@/types';
 import { isAuthenticated } from '@/utils/auth';
+import { supabasePostService } from '@/services/supabasePostService';
+import { supabaseAuthService } from '@/services/supabaseAuthService';
 
 export default function Home() {
   const router = useRouter();
@@ -15,8 +17,11 @@ export default function Home() {
   const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { posts: todaysPosts } = usePosts({ sortBy: 'popular' });
-  const { posts: careerPosts } = usePosts({ category: '학부모상담' });
-  const { posts: guidancePosts } = usePosts({ category: '학생지도' });
+  const [popularTopic, setPopularTopic] = useState<string>('이직고민');
+  const [interestTopic, setInterestTopic] = useState<string>('학생지도');
+  const { posts: popularPosts } = usePosts({ category: popularTopic as any });
+  const { posts: interestPosts } = usePosts({ category: interestTopic as any });
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -25,6 +30,31 @@ export default function Home() {
     }
     setIsUserAuthenticated(true);
     setIsLoading(false);
+    
+    // Load popular topics and user data
+    const loadData = async () => {
+      try {
+        // Get popular topics based on likes
+        const topics = await supabasePostService.getPopularTopics();
+        if (topics.length > 0) {
+          setPopularTopic(topics[0].topic);
+        }
+        
+        // Get current user and their interest topics
+        const user = await supabaseAuthService.getCurrentUser();
+        if (user) {
+          setCurrentUser(user);
+          const interests = await supabasePostService.getInterestTopics(user.id);
+          if (interests.length > 0) {
+            setInterestTopic(interests[0].topic);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
+    };
+    
+    loadData();
   }, [router]);
 
   if (isLoading) {
@@ -62,7 +92,7 @@ export default function Home() {
 
         {/* Counselors Section */}
         <div className="bg-gray-200 rounded-lg p-3">
-          <h2 className="text-sm font-bold text-gray-700 mb-3">00님의 주변에 이런 상담사분들이 계세요</h2>
+          <h2 className="text-sm font-bold text-gray-700 mb-3">{currentUser?.name || '회원'}님의 주변에 이런 상담사분들이 계세요</h2>
           
           <div className="bg-white rounded-lg p-3 flex items-center justify-between">
             <div className="w-16 h-12 bg-gray-100 rounded-lg"></div>
@@ -76,10 +106,10 @@ export default function Home() {
 
         {/* Popular Topic Section */}
         <div>
-          <h2 className="text-base font-bold mb-3">인기 주제 #이직고민</h2>
+          <h2 className="text-base font-bold mb-3">인기 주제 #{popularTopic}</h2>
           
           <div className="space-y-3">
-            {careerPosts.slice(0, 2).map((post) => (
+            {popularPosts.slice(0, 2).map((post) => (
               <PostCard key={post.id} post={post} />
             ))}
           </div>
@@ -97,10 +127,10 @@ export default function Home() {
 
         {/* Interest Topic Section */}
         <div>
-          <h2 className="text-base font-bold mb-3">관심 주제 #학생지도</h2>
+          <h2 className="text-base font-bold mb-3">관심 주제 #{interestTopic}</h2>
           
           <div className="space-y-3">
-            {guidancePosts.slice(0, 2).map((post) => (
+            {interestPosts.slice(0, 2).map((post) => (
               <PostCard key={post.id} post={post} />
             ))}
           </div>

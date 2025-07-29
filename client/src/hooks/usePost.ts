@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Post } from '@/types';
+import { apiClient } from '@/lib/api/client';
+import { API_ENDPOINTS } from '@/lib/api/config';
 
 // Mock post data generator
 const generateMockPost = (id: string): Post => ({
@@ -35,13 +37,15 @@ export function usePost(postId: string) {
       setError(null);
       
       try {
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 300));
+        // 실제 서버 API 호출 시도
+        const response = await apiClient.get<Post>(API_ENDPOINTS.POSTS.BY_ID(postId));
+        setPost(response);
+      } catch (err) {
+        console.warn('Server connection failed, using mock data:', err);
         
+        // 서버 연결 실패 시 모의 데이터 사용
         const mockPost = generateMockPost(postId);
         setPost(mockPost);
-      } catch (err) {
-        setError('게시글을 불러오는데 실패했습니다.');
       } finally {
         setLoading(false);
       }

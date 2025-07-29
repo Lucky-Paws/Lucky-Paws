@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import { IUser } from '../types';
 import { supabase } from '../config/supabase';
 import { AppError } from '../middleware/errorHandler';
@@ -46,6 +47,7 @@ export const authService = {
     type: 'mentor' | 'mentee';
     teacherType?: string;
     yearsOfExperience?: number;
+    bio?: string;
   }): Promise<{ user: IUser; tokens: AuthTokens }> {
     // 기존 사용자 확인
     const { data: existingUser } = await supabase
@@ -64,10 +66,11 @@ export const authService = {
       .insert([{
         name: data.name,
         email: data.email,
-        password: data.password, // 실제로는 해시된 비밀번호를 저장해야 함
+        password: await bcrypt.hash(data.password, 10), // 비밀번호 해싱
         type: data.type,
         teacher_type: data.teacherType,
         years_of_experience: data.yearsOfExperience,
+        bio: data.bio,
         is_verified: false,
       }])
       .select()
@@ -99,8 +102,9 @@ export const authService = {
       throw new AppError('Invalid credentials', 401);
     }
 
-    // 실제로는 bcrypt로 비밀번호를 검증해야 함
-    if (user.password !== password) {
+    // bcrypt로 비밀번호 검증
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
       throw new AppError('Invalid credentials', 401);
     }
 
@@ -138,7 +142,7 @@ export const authService = {
         .insert([{
           email: data.email,
           name: data.name,
-          password: `${data.provider}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // 임시 비밀번호
+          password: await bcrypt.hash(`${data.provider}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, 10), // 임시 비밀번호 해싱
           avatar: data.profileImage,
           type: 'mentee', // 기본값, 나중에 변경 가능
           is_verified: false, // 추가 정보 입력 전까지는 미인증

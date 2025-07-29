@@ -2,15 +2,17 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
-import { useSession } from 'next-auth/react';
 import Header from '@/components/common/Header';
 import CommentSection from '@/components/post/CommentSection';
 import ReactionButtons from '@/components/post/ReactionButtons';
 import BottomNavigation from '@/components/BottomNavigation';
+import PostDropdownMenu from '@/components/post/PostDropdownMenu';
 import { usePost } from '@/hooks/usePost';
 import { useComments } from '@/hooks/useComments';
 import { useLikes } from '@/hooks/useLikes';
 import { useReactions } from '@/hooks/useReactions';
+import { supabaseAuthService } from '@/services/supabaseAuthService';
+import { supabasePostService } from '@/services/supabasePostService';
 
 export default function PostDetail() {
   const params = useParams();
@@ -19,29 +21,20 @@ export default function PostDetail() {
   
   const { post, loading } = usePost(postId);
   const { comments, addComment, likeComment, deleteComment } = useComments(postId);
-  const { likeCount, isLiked, toggleLike } = useLikes(post?.likeCount || 0);
+  const { likeCount, isLiked, toggleLike } = useLikes(postId, post?.likeCount || 0);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const { data: session } = useSession();
-  
-  // 현재 사용자가 게시글 작성자인지 확인
-  const isAuthor = session?.user?.email === post?.author?.email;
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
-  // 메뉴 외부 클릭 시 닫기
+  // Load current user
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setShowMenu(false);
-      }
+    const loadUser = async () => {
+      const user = await supabaseAuthService.getCurrentUser();
+      setCurrentUser(user);
     };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    loadUser();
   }, []);
-  const { reactions, userReactions, toggleReaction } = useReactions({
+  const { reactions, userReactions, toggleReaction } = useReactions(postId, {
     cheer: 2,
     empathy: 3,
     helpful: 1,
@@ -77,43 +70,20 @@ export default function PostDetail() {
               <h2 className="font-medium text-base">{post.author.name}</h2>
             </div>
           </div>
-          <div className="relative" ref={menuRef}>
-            <button 
-              className="p-1"
-              onClick={() => setShowMenu(!showMenu)}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-              </svg>
-            </button>
-            
-            {showMenu && (
-              <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg min-w-[120px] z-60">
-                {isAuthor ? (
-                  <>
-                    <button className="w-full px-4 py-3 text-left hover:bg-gray-50 first:rounded-t-lg text-sm">
-                      수정
-                    </button>
-                    <button className="w-full px-4 py-3 text-left hover:bg-gray-50 text-sm">
-                      삭제
-                    </button>
-                    <button className="w-full px-4 py-3 text-left hover:bg-gray-50 last:rounded-b-lg text-sm">
-                      공유
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button className="w-full px-4 py-3 text-left hover:bg-gray-50 first:rounded-t-lg text-sm">
-                      신고
-                    </button>
-                    <button className="w-full px-4 py-3 text-left hover:bg-gray-50 last:rounded-b-lg text-sm">
-                      공유
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
+          <PostDropdownMenu
+            postId={postId}
+            authorId={post.author.id}
+            currentUserId={currentUser?.id}
+            onEdit={() => router.push(`/write?edit=${postId}`)}
+            onDelete={async () => {
+              try {
+                await supabasePostService.deletePost(postId);
+                router.push('/community');
+              } catch (error) {
+                alert('삭제에 실패했습니다.');
+              }
+            }}
+          />
         </div>
 
         {/* Post Title */}
@@ -181,7 +151,8 @@ export default function PostDetail() {
         {/* Comments */}
         <CommentSection
           comments={comments}
-          currentUser={session?.user}
+          currentUser={currentUser}
+          postAuthorId={post.author.id}
           onAddComment={addComment}
           onLikeComment={likeComment}
           onDeleteComment={deleteComment}
