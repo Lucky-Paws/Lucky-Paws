@@ -1,25 +1,28 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import { useRouter, useParams } from 'next/navigation';
 import Header, { HEADER_HEIGHT } from '@/components/common/Header';
+import { isAuthenticated } from '@/utils/auth';
 
 export default function ChatRoom() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const params = useParams();
   const chatId = params.id as string;
   const [message, setMessage] = useState('');
+  const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) {
+    if (!isAuthenticated()) {
       router.push('/landing');
+      return;
     }
-  }, [session, status, router]);
+    setIsUserAuthenticated(true);
+    setIsLoading(false);
+  }, [router]);
 
-  if (status === 'loading') {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-lg">로딩중...</div>
@@ -27,7 +30,7 @@ export default function ChatRoom() {
     );
   }
 
-  if (!session) {
+  if (!isUserAuthenticated) {
     return null;
   }
 
